@@ -1,4 +1,7 @@
-// Variables globales
+// ==========================================
+// APP PRINCIPAL - GLAM ROOM
+// ==========================================
+
 let currentClient = null;
 let currentAdminClient = null;
 
@@ -39,24 +42,9 @@ function loadClientCard() {
     const totalStars = currentClient.totalStars || currentClient.stars || 0;
     const currentStars = currentClient.stars || 0;
     
-    // Determinar nivel
     let tier = TIERS.bronze;
     let maxStars = 10;
-        // Agregar botón de citas si no existe
-    if (!document.getElementById('btnAppointments')) {
-        const btnContainer = document.createElement('div');
-        btnContainer.style.marginTop = '20px';
-        btnContainer.innerHTML = `
-            <button onclick="showMyAppointments()" class="btn-secondary" style="width: 100%; margin-bottom: 10px;">
-                <i class="fas fa-calendar-alt"></i> Ver mis citas
-            </button>
-            <button onclick="initAppointmentBooking('${currentClient.id}', '${currentClient.name}')" class="btn-primary" style="width: 100%;">
-                <i class="fas fa-calendar-plus"></i> Agendar nueva cita
-            </button>
-        `;
-        document.querySelector('.card-content').appendChild(btnContainer);
-    }
-}    
+    
     if (totalStars >= 50) {
         tier = TIERS.diamond;
         maxStars = '∞';
@@ -68,12 +56,10 @@ function loadClientCard() {
         maxStars = 25;
     }
     
-    // Actualizar badge de nivel
     const badge = document.getElementById('tierBadge');
     badge.textContent = `Nivel: ${tier.name} ${tier.name === 'Diamante' ? '💎' : '✨'}`;
     badge.className = `tier-badge ${tier.name.toLowerCase()}`;
     
-    // Generar estrellas (máximo 10 visibles por tarjeta)
     const container = document.getElementById('starsContainer');
     container.innerHTML = '';
     
@@ -84,11 +70,9 @@ function loadClientCard() {
         container.appendChild(star);
     }
     
-    // Actualizar progreso
     document.getElementById('currentStars').textContent = currentStars;
     document.getElementById('maxStars').textContent = maxStars;
     
-    // Próxima recompensa
     const nextReward = document.getElementById('nextReward');
     if (currentStars < 10) {
         nextReward.innerHTML = `Próxima recompensa: <span>${tier.reward}</span>`;
@@ -97,7 +81,6 @@ function loadClientCard() {
         nextReward.style.display = 'none';
     }
     
-    // Mostrar estado de recompensa lista
     const rewardStatus = document.getElementById('rewardStatus');
     if (currentStars >= 10) {
         rewardStatus.classList.add('show');
@@ -105,7 +88,6 @@ function loadClientCard() {
         rewardStatus.classList.remove('show');
     }
     
-    // Actualizar niveles visuales
     document.querySelectorAll('.level-item').forEach(el => {
         el.classList.remove('active');
         if (el.dataset.tier === tier.name.toLowerCase()) {
@@ -172,7 +154,6 @@ function showAdminClientInfo() {
     const totalStars = client.totalStars || client.stars || 0;
     const currentStars = client.stars || 0;
     
-    // Determinar nivel
     let tier = TIERS.bronze;
     if (totalStars >= 50) tier = TIERS.diamond;
     else if (totalStars >= 25) tier = TIERS.gold;
@@ -186,12 +167,10 @@ function showAdminClientInfo() {
     document.getElementById('adminClientTotalStars').textContent = totalStars;
     document.getElementById('adminClientCurrentStars').textContent = currentStars;
     
-    // Barra de progreso
     const progress = (currentStars / 10) * 100;
     document.getElementById('clientProgressBar').style.width = Math.min(progress, 100) + '%';
     document.getElementById('progressText').textContent = `${currentStars}/10`;
     
-    // Botón de canjear
     const redeemBtn = document.getElementById('redeemBtn');
     if (currentStars >= 10) {
         redeemBtn.classList.remove('hidden');
@@ -199,7 +178,6 @@ function showAdminClientInfo() {
         redeemBtn.classList.add('hidden');
     }
     
-    // Historial admin
     const historyList = document.getElementById('adminClientHistory');
     historyList.innerHTML = '';
     
@@ -243,18 +221,15 @@ async function addStar() {
         if (!currentAdminClient.visits) currentAdminClient.visits = [];
         currentAdminClient.visits.push(visit);
         
-        // Verificar si completó tarjeta
         if (newStars === 10) {
             showNotification('🎉 ¡Cliente completó su tarjeta!', 'success');
-            // Opcional: Enviar WhatsApp automático
-            // whatsAppService.sendRewardNotification(currentAdminClient.id, currentAdminClient.name, 'Recompensa');
         } else {
             showNotification('⭐ Visita agregada correctamente', 'success');
         }
         
         await logActivity('visit', `Nueva visita: ${currentAdminClient.name}`, currentAdminClient.id);
         showAdminClientInfo();
-        loadDashboard(); // Actualizar stats
+        loadDashboard();
     } catch (error) {
         showNotification('Error al guardar', 'error');
     }
@@ -287,7 +262,6 @@ async function redeemReward() {
     }
 }
 
-// Gestión de nuevos clientes
 function showNewClientForm() {
     document.getElementById('newClientForm').classList.remove('hidden');
     document.getElementById('adminClientInfo').classList.add('hidden');
@@ -336,7 +310,6 @@ async function createClient() {
         showNotification('✨ Cliente creado exitosamente', 'success');
         hideNewClientForm();
         
-        // Buscar el cliente recién creado
         document.getElementById('adminPhoneInput').value = phone;
         searchClient();
     } catch (error) {
