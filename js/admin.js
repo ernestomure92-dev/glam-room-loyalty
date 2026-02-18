@@ -1,5 +1,5 @@
 // ==========================================
-// ADMIN - Panel de Administración Completo
+// ADMIN - Panel de Administración
 // ==========================================
 
 let currentAdmin = null;
@@ -7,9 +7,7 @@ let currentAdminClient = null;
 let visitsChartInstance = null;
 let tiersChartInstance = null;
 
-// Inicialización
 document.addEventListener('DOMContentLoaded', () => {
-    // Verificar estado de autenticación
     firebase.auth().onAuthStateChanged((user) => {
         if (user) {
             currentAdmin = user;
@@ -19,7 +17,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
     
-    // Event listeners
     document.getElementById('adminEmail')?.addEventListener('keypress', (e) => {
         if (e.key === 'Enter') loginAdmin();
     });
@@ -32,12 +29,9 @@ document.addEventListener('DOMContentLoaded', () => {
         if (e.key === 'Enter') searchClient();
     });
     
-    // Set fecha de hoy en el filtro de citas
     const today = new Date().toISOString().split('T')[0];
     const dateFilter = document.getElementById('adminDateFilter');
-    if (dateFilter) {
-        dateFilter.value = today;
-    }
+    if (dateFilter) dateFilter.value = today;
 });
 
 function showAdminLogin() {
@@ -49,8 +43,6 @@ function showAdminDashboard() {
     document.getElementById('adminLoginScreen').classList.remove('active');
     document.getElementById('adminDashboard').classList.add('active');
     document.getElementById('adminUserEmail').textContent = currentAdmin.email;
-    
-    // Cargar dashboard inicial
     loadDashboard();
 }
 
@@ -70,19 +62,16 @@ async function loginAdmin() {
         let message = 'Error al iniciar sesión';
         if (error.code === 'auth/user-not-found') message = 'Usuario no encontrado';
         if (error.code === 'auth/wrong-password') message = 'Contraseña incorrecta';
-        if (error.code === 'auth/invalid-email') message = 'Correo inválido';
         showNotification(message, 'error');
     }
 }
 
 function logoutAdmin() {
-    firebase.auth().signOut().then(() => {
-        showNotification('Sesión cerrada', 'success');
-    });
+    firebase.auth().signOut();
 }
 
 // ==========================================
-// DASHBOARD - Estadísticas
+// DASHBOARD
 // ==========================================
 
 async function loadDashboard() {
@@ -125,8 +114,7 @@ async function loadStats() {
         document.getElementById('vipClients').textContent = vipClients;
         
     } catch (error) {
-        console.error('Error cargando estadísticas:', error);
-        showNotification('Error al cargar estadísticas', 'error');
+        console.error('Error:', error);
     }
 }
 
@@ -159,7 +147,6 @@ async function loadCharts() {
             }
         });
         
-        // Gráfico de visitas
         const visitsCtx = document.getElementById('visitsChart');
         if (visitsCtx) {
             if (visitsChartInstance) visitsChartInstance.destroy();
@@ -185,7 +172,6 @@ async function loadCharts() {
             });
         }
         
-        // Gráfico de niveles
         const tiersCtx = document.getElementById('tiersChart');
         if (tiersCtx) {
             if (tiersChartInstance) tiersChartInstance.destroy();
@@ -208,7 +194,7 @@ async function loadCharts() {
         }
         
     } catch (error) {
-        console.error('Error cargando gráficos:', error);
+        console.error('Error:', error);
     }
 }
 
@@ -244,7 +230,7 @@ async function loadRecentActivity() {
         });
         
     } catch (error) {
-        console.error('Error cargando actividad:', error);
+        console.error('Error:', error);
     }
 }
 
@@ -280,19 +266,19 @@ async function logActivity(type, description, clientId = null) {
             admin: currentAdmin ? currentAdmin.email : 'sistema'
         });
     } catch (error) {
-        console.error('Error registrando actividad:', error);
+        console.error('Error:', error);
     }
 }
 
 // ==========================================
-// GESTIÓN DE CLIENTES - CORREGIDO
+// CLIENTES
 // ==========================================
 
 async function searchClient() {
     const phone = document.getElementById('searchPhone').value.trim();
     
     if (phone.length !== 10) {
-        showNotification('Ingresa un número de 10 dígitos', 'error');
+        showNotification('Ingresa 10 dígitos', 'error');
         return;
     }
 
@@ -307,12 +293,10 @@ async function searchClient() {
             hideClientInfo();
         }
     } catch (error) {
-        console.error('Error buscando cliente:', error);
         showNotification('Error de conexión', 'error');
     }
 }
 
-// CORREGIDO: Usar innerHTML para evitar duplicados
 function showClientInfo() {
     const client = currentAdminClient;
     const totalStars = client.totalStars || client.stars || 0;
@@ -327,7 +311,6 @@ function showClientInfo() {
     clientInfoDiv.classList.remove('hidden');
     document.getElementById('newClientForm').classList.add('hidden');
     
-    // LIMPIAR Y RECREAR TODO EL CONTENIDO (EVITA DUPLICADOS)
     clientInfoDiv.innerHTML = `
         <div class="client-header">
             <div>
@@ -336,14 +319,8 @@ function showClientInfo() {
                 <span class="tier-tag" style="background: ${tier.color}">${tier.name}</span>
             </div>
             <div class="client-stats">
-                <div class="stat">
-                    <span>${totalStars}</span>
-                    <small>Total</small>
-                </div>
-                <div class="stat">
-                    <span>${currentStars}</span>
-                    <small>Actual</small>
-                </div>
+                <div class="stat"><span>${totalStars}</span><small>Total</small></div>
+                <div class="stat"><span>${currentStars}</span><small>Actual</small></div>
             </div>
         </div>
         
@@ -353,17 +330,9 @@ function showClientInfo() {
         </div>
         
         <div class="admin-actions">
-            <button onclick="addStar()" class="btn-primary">
-                <i class="fas fa-plus"></i> Agregar Visita
-            </button>
-            ${currentStars >= 10 ? `
-                <button onclick="redeemReward()" class="btn-reward">
-                    <i class="fas fa-gift"></i> Canjear Recompensa
-                </button>
-            ` : ''}
-            <button onclick="notifyClient()" class="btn-whatsapp">
-                <i class="fab fa-whatsapp"></i> WhatsApp
-            </button>
+            <button onclick="addStar()" class="btn-primary"><i class="fas fa-plus"></i> Agregar Visita</button>
+            ${currentStars >= 10 ? `<button onclick="redeemReward()" class="btn-reward"><i class="fas fa-gift"></i> Canjear</button>` : ''}
+            <button onclick="notifyClient()" class="btn-whatsapp"><i class="fab fa-whatsapp"></i> WhatsApp</button>
         </div>
         
         <h5 style="margin: 25px 0 15px; color: var(--dark-pink); font-family: 'Playfair Display', serif;">Historial</h5>
@@ -401,7 +370,7 @@ async function createClient() {
     const phone = document.getElementById('newClientPhone').value.trim();
     
     if (!name || phone.length !== 10) {
-        showNotification('Completa los campos correctamente', 'error');
+        showNotification('Completa los campos', 'error');
         return;
     }
 
@@ -409,7 +378,7 @@ async function createClient() {
         const doc = await db.collection('clients').doc(phone).get();
         
         if (doc.exists) {
-            showNotification('Este número ya está registrado', 'error');
+            showNotification('Número ya registrado', 'error');
             return;
         }
         
@@ -426,17 +395,15 @@ async function createClient() {
             updatedAt: new Date().toISOString()
         });
         
-        await logActivity('new_client', `Nuevo cliente: ${name}`, phone);
-        showNotification('✨ Cliente creado exitosamente', 'success');
+        await logActivity('new_client', `Nuevo: ${name}`, phone);
+        showNotification('✨ Cliente creado', 'success');
         hideNewClientForm();
         
-        // Buscar el nuevo cliente
         document.getElementById('searchPhone').value = phone;
         await searchClient();
         
     } catch (error) {
-        console.error('Error creando cliente:', error);
-        showNotification('Error al crear cliente', 'error');
+        showNotification('Error al crear', 'error');
     }
 }
 
@@ -466,7 +433,11 @@ async function addStar() {
         currentAdminClient.visits.push(visit);
         
         if (newStars === 10) {
-            showNotification('🎉 ¡Cliente completó su tarjeta!', 'success');
+            showNotification('🎉 ¡Completó tarjeta!', 'success');
+            
+            // ENVIAR WHATSAPP DE RECOMPENSA
+            const tier = getTier(newTotalStars);
+            whatsAppService.sendRewardNotification(currentAdminClient, tier);
         } else {
             showNotification('⭐ Visita agregada', 'success');
         }
@@ -476,9 +447,15 @@ async function addStar() {
         loadDashboard();
         
     } catch (error) {
-        console.error('Error agregando estrella:', error);
         showNotification('Error al guardar', 'error');
     }
+}
+
+function getTier(totalStars) {
+    if (totalStars >= 50) return TIERS.diamond;
+    if (totalStars >= 25) return TIERS.gold;
+    if (totalStars >= 10) return TIERS.silver;
+    return TIERS.bronze;
 }
 
 async function redeemReward() {
@@ -505,7 +482,6 @@ async function redeemReward() {
         loadDashboard();
         
     } catch (error) {
-        console.error('Error canjeando:', error);
         showNotification('Error al canjear', 'error');
     }
 }
@@ -516,10 +492,7 @@ function notifyClient() {
     const phone = currentAdminClient.id;
     const totalStars = currentAdminClient.totalStars || currentAdminClient.stars || 0;
     
-    let tier = TIERS.bronze;
-    if (totalStars >= 50) tier = TIERS.diamond;
-    else if (totalStars >= 25) tier = TIERS.gold;
-    else if (totalStars >= 10) tier = TIERS.silver;
+    const tier = getTier(totalStars);
     
     const message = `¡Hola ${currentAdminClient.name}! 🎉\n\n` +
         `Has completado tu tarjeta en *Glam Room*!\n\n` +
@@ -527,14 +500,12 @@ function notifyClient() {
         `👑 Nivel: ${tier.name}\n\n` +
         `¡Te esperamos! 💅`;
     
-    const encodedMsg = encodeURIComponent(message);
-    window.open(`https://wa.me/52${phone}?text=${encodedMsg}`, '_blank');
-    
+    window.open(`https://wa.me/52${phone}?text=${encodeURIComponent(message)}`, '_blank');
     showNotification('Abriendo WhatsApp...', 'success');
 }
 
 // ==========================================
-// GESTIÓN DE CITAS (ADMIN) - CORREGIDO
+// CITAS (ADMIN)
 // ==========================================
 
 async function loadAdminAppointments() {
@@ -558,7 +529,7 @@ async function loadAdminAppointments() {
         appointments.sort((a, b) => a.time.localeCompare(b.time));
         
         if (appointments.length === 0) {
-            list.innerHTML = '<p style="text-align: center; padding: 40px; color: #666;">No hay citas para esta fecha</p>';
+            list.innerHTML = '<p style="text-align: center; padding: 40px; color: #666;">No hay citas</p>';
             return;
         }
         
@@ -569,27 +540,21 @@ async function loadAdminAppointments() {
             <div class="appointment-card" style="background: white; padding: 20px; border-radius: 15px; margin-bottom: 15px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); ${isCancelled ? 'opacity: 0.6;' : ''}">
                 <div style="display: flex; justify-content: space-between; align-items: flex-start;">
                     <div>
-                        <h4 style="color: var(--dark-pink); margin-bottom: 8px; ${isCancelled ? 'text-decoration: line-through;' : ''}">
-                            ${apt.serviceName}
-                        </h4>
+                        <h4 style="color: var(--dark-pink); margin-bottom: 8px; ${isCancelled ? 'text-decoration: line-through;' : ''}">${apt.serviceName}</h4>
                         <p style="color: #666; margin: 4px 0;"><i class="fas fa-user"></i> ${apt.clientName}</p>
                         <p style="color: #666; margin: 4px 0;"><i class="fas fa-clock"></i> ${apt.time}</p>
                         <p style="color: #666; margin: 4px 0;"><i class="fas fa-phone"></i> ${apt.phone}</p>
                         ${isCancelled ? '<p style="color: #e74c3c; font-size: 0.85rem; margin-top: 8px;"><i class="fas fa-ban"></i> Cancelada</p>' : ''}
                     </div>
                     <div style="text-align: right;">
-                        <span class="badge ${apt.status}" style="display: inline-block; padding: 6px 12px; border-radius: 12px; font-size: 0.8rem; font-weight: 600; margin-bottom: 10px; ${apt.status === 'confirmed' ? 'background: #e8f5e9; color: #2e7d32;' : apt.status === 'cancelled' ? 'background: #ffebee; color: #c62828;' : 'background: #fff3e0; color: #ef6c00;'}">
-                            ${apt.status === 'confirmed' ? '✓ Confirmada' : apt.status === 'cancelled' ? '✕ Cancelada' : '⏳ Pendiente'}
+                        <span style="display: inline-block; padding: 6px 12px; border-radius: 12px; font-size: 0.8rem; font-weight: 600; margin-bottom: 10px; ${apt.status === 'confirmed' ? 'background: #e8f5e9; color: #2e7d32;' : isCancelled ? 'background: #ffebee; color: #c62828;' : 'background: #fff3e0; color: #ef6c00;'}">
+                            ${apt.status === 'confirmed' ? '✓ Confirmada' : isCancelled ? '✕ Cancelada' : '⏳ Pendiente'}
                         </span>
                         <div style="display: flex; gap: 5px; flex-direction: column;">
                             ${!isCancelled ? `
-                                <button onclick="cancelAdminAppointment('${apt.id}')" class="btn-cancel" style="padding: 6px 12px; font-size: 0.8rem;">
-                                    <i class="fas fa-times"></i> Cancelar
-                                </button>
+                                <button onclick="cancelAdminAppointment('${apt.id}')" class="btn-cancel" style="padding: 6px 12px; font-size: 0.8rem;"><i class="fas fa-times"></i> Cancelar</button>
                             ` : ''}
-                            <button onclick="deleteAppointment('${apt.id}')" class="btn-cancel" style="padding: 6px 12px; font-size: 0.8rem; background: #ffebee; color: #c62828;">
-                                <i class="fas fa-trash"></i> Eliminar
-                            </button>
+                            <button onclick="deleteAppointment('${apt.id}')" class="btn-cancel" style="padding: 6px 12px; font-size: 0.8rem; background: #ffebee; color: #c62828;"><i class="fas fa-trash"></i> Eliminar</button>
                         </div>
                     </div>
                 </div>
@@ -597,33 +562,36 @@ async function loadAdminAppointments() {
         `}).join('');
         
     } catch (error) {
-        console.error('Error cargando citas:', error);
         list.innerHTML = '<p style="color: #e74c3c; text-align: center;">Error al cargar citas</p>';
     }
 }
 
-// NUEVAS FUNCIONES: Cancelar y Eliminar citas desde admin
 async function cancelAdminAppointment(appointmentId) {
     if (!confirm('¿Cancelar esta cita?')) return;
     
     try {
+        const doc = await db.collection('appointments').doc(appointmentId).get();
+        const apt = doc.data();
+        
         await db.collection('appointments').doc(appointmentId).update({
             status: 'cancelled',
             cancelledAt: new Date().toISOString(),
             cancelledBy: 'admin'
         });
         
+        // ENVIAR WHATSAPP DE CANCELACIÓN
+        whatsAppService.sendCancellationNotice(apt, 'admin');
+        
         showNotification('Cita cancelada', 'success');
         loadAdminAppointments();
         
     } catch (error) {
-        console.error('Error:', error);
         showNotification('Error al cancelar', 'error');
     }
 }
 
 async function deleteAppointment(appointmentId) {
-    if (!confirm('¿Eliminar permanentemente esta cita?')) return;
+    if (!confirm('¿Eliminar permanentemente?')) return;
     
     try {
         await db.collection('appointments').doc(appointmentId).delete();
@@ -631,54 +599,34 @@ async function deleteAppointment(appointmentId) {
         loadAdminAppointments();
         
     } catch (error) {
-        console.error('Error:', error);
         showNotification('Error al eliminar', 'error');
     }
 }
 
 // ==========================================
-// NAVEGACIÓN DE TABS
+// NAVEGACIÓN
 // ==========================================
 
 function showTab(tabName) {
-    // Ocultar todas las tabs
     document.querySelectorAll('.admin-tab').forEach(tab => {
         tab.classList.remove('active');
     });
     
-    // Desactivar todos los botones
     document.querySelectorAll('.btn-nav').forEach(btn => {
         btn.classList.remove('active');
     });
     
-    // Activar tab seleccionada
     document.getElementById(`tab-${tabName}`).classList.add('active');
     
-    // Activar botón que disparó el evento
     if (event && event.target) {
         event.target.classList.add('active');
     }
     
-    // Cargar contenido específico
     if (tabName === 'dashboard') {
         loadDashboard();
     } else if (tabName === 'appointments') {
         loadAdminAppointments();
     }
-}
-
-// ==========================================
-// UTILIDADES
-// ==========================================
-
-function formatDate(isoString) {
-    const date = new Date(isoString);
-    return date.toLocaleDateString('es-MX', {
-        day: '2-digit',
-        month: 'short',
-        hour: '2-digit',
-        minute: '2-digit'
-    });
 }
 
 function showNotification(message, type = 'success') {
@@ -694,7 +642,6 @@ function showNotification(message, type = 'success') {
     }, 3000);
 }
 
-// Crear admin inicial (ejecutar en consola una vez)
 function createAdmin(email, password) {
     firebase.auth().createUserWithEmailAndPassword(email, password)
         .then(() => alert('Admin creado'))
