@@ -111,9 +111,13 @@
                     </button>
                 </div>
 
-                <div id="clientInfo" class="client-detail-card hidden">
+                <!-- Reemplaza el div de client info con este estructura clara: -->
+<div id="clientInfo" class="client-detail-card hidden">
+    <div class="client-header"></div>
+    <!-- El resto se genera dinámicamente -->
+    <ul id="adminClientHistory" class="history-list"></ul>
+</div>
                     <!-- Info del cliente -->
-                </div>
 
                 <div id="newClientForm" class="form-card hidden">
                     <h4>Nuevo Cliente</h4>
@@ -139,12 +143,11 @@
 
     <div id="notification" class="notification"></div>
 
-    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-auth-compat.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="js/firebase-config.js"></script>
-    <script src="js/utils.js"></script>
-    <script src="js/admin.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-auth-compat.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="js/firebase-config.js"></script>
+<script src="js/admin.js"></script>
 </body>
 </html>
