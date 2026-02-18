@@ -1,5 +1,5 @@
 // ==========================================
-// SISTEMA DE CITAS SIMPLIFICADO
+// SISTEMA DE CITAS SIMPLIFICADO - CORREGIDO
 // ==========================================
 
 let appointmentData = {
@@ -20,9 +20,19 @@ const businessHours = { start: 9, end: 19, interval: 30 };
 function initAppointmentBooking() {
     if (!currentClient) return;
     
-    appointmentData.clientId = currentClient.id;
-    appointmentData.clientName = currentClient.name;
-    appointmentData.phone = currentClient.id;
+    appointmentData = {
+        clientId: currentClient.id,
+        clientName: currentClient.name,
+        phone: currentClient.id,
+        service: null,
+        serviceName: '',
+        duration: 0,
+        date: null,
+        time: null
+    };
+    
+    selectedDate = null;
+    currentMonth = new Date();
     
     document.querySelectorAll('.step').forEach(s => s.classList.add('hidden'));
     document.getElementById('step1').classList.remove('hidden');
@@ -52,6 +62,7 @@ function renderCalendar() {
     const firstDay = new Date(year, month, 1).getDay();
     const daysInMonth = new Date(year, month + 1, 0).getDate();
     const today = new Date();
+    today.setHours(0, 0, 0, 0);
     
     let html = '';
     
@@ -66,7 +77,7 @@ function renderCalendar() {
     
     for (let day = 1; day <= daysInMonth; day++) {
         const date = new Date(year, month, day);
-        const isPast = date < new Date(today.setHours(0,0,0,0));
+        const isPast = date < today;
         const isSunday = date.getDay() === 0;
         const isSelected = selectedDate && date.toDateString() === selectedDate.toDateString();
         
@@ -74,7 +85,11 @@ function renderCalendar() {
         if (isPast || isSunday) classes += ' disabled';
         if (isSelected) classes += ' selected';
         
-        html += `<div class="${classes}" onclick="${!isPast && !isSunday ? `selectDate(${year}, ${month}, ${day})` : ''}">${day}</div>`;
+        if (!isPast && !isSunday) {
+            html += `<div class="${classes}" onclick="selectDate(${year}, ${month}, ${day})">${day}</div>`;
+        } else {
+            html += `<div class="${classes}">${day}</div>`;
+        }
     }
     
     document.getElementById('calendarGrid').innerHTML = html;
@@ -87,7 +102,11 @@ function changeMonth(delta) {
 
 function selectDate(year, month, day) {
     selectedDate = new Date(year, month, day);
-    appointmentData.date = selectedDate.toISOString().split('T')[0];
+    
+    const yyyy = year;
+    const mm = String(month + 1).padStart(2, '0');
+    const dd = String(day).padStart(2, '0');
+    appointmentData.date = `${yyyy}-${mm}-${dd}`;
     
     renderCalendar();
     
@@ -101,42 +120,77 @@ async function loadAvailableTimes() {
     const container = document.getElementById('timeSlots');
     const dateDisplay = document.getElementById('selectedDateDisplay');
     
+    if (!selectedDate) {
+        container.innerHTML = '<p style="color: #e74c3c;">Error: No hay fecha seleccionada</p>';
+        return;
+    }
+    
     dateDisplay.textContent = `Fecha seleccionada: ${selectedDate.toLocaleDateString('es-MX', { 
         weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' 
     })}`;
     
-    container.innerHTML = '<p>Cargando horarios...</p>';
+    container.innerHTML = '<p><i class="fas fa-spinner fa-spin"></i> Cargando horarios...</p>';
     
     try {
-        const existingAppointments = await appointmentsCollection
-            .where('date', '==', appointmentData.date)
-            .where('status', 'in', ['confirmed', 'pending'])
+        const year = selectedDate.getFullYear();
+        const month = String(selectedDate.getMonth() + 1).padStart(2, '0');
+        const day = String(selectedDate.getDate()).padStart(2, '0');
+        const dateString = `${year}-${month}-${day}`;
+        
+        console.log('Buscando citas para fecha:', dateString);
+        
+        // Consulta simple sin índices complejos
+        const snapshot = await db.collection('appointments')
+            .where('date', '==', dateString)
             .get();
         
-        const bookedTimes = existingAppointments.docs.map(doc => doc.data().time);
+        const bookedTimes = [];
+        snapshot.forEach(doc => {
+            const data = doc.data();
+            if (data.status === 'confirmed' || data.status === 'pending') {
+                bookedTimes.push(data.time);
+            }
+        });
+        
+        console.log('Horarios ocupados:', bookedTimes);
         
         const slots = [];
         for (let hour = businessHours.start; hour < businessHours.end; hour++) {
             for (let min = 0; min < 60; min += businessHours.interval) {
-                const timeStr = `${hour.toString().padStart(2, '0')}:${min.toString().padStart(2, '0')}`;
+                const timeStr = `${String(hour).padStart(2, '0')}:${String(min).padStart(2, '0')}`;
                 const isBooked = bookedTimes.includes(timeStr);
                 
-                slots.push(`
-                    <button class="time-slot ${isBooked ? 'booked' : ''}" 
-                            onclick="${!isBooked ? `selectTime('${timeStr}')` : ''}"
-                            ${isBooked ? 'disabled' : ''}>
-                        ${timeStr}
-                        ${isBooked ? '<small>Ocupado</small>' : ''}
-                    </button>
-                `);
+                if (isBooked) {
+                    slots.push(`
+                        <button class="time-slot booked" disabled>
+                            ${timeStr}
+                            <small>Ocupado</small>
+                        </button>
+                    `);
+                } else {
+                    slots.push(`
+                        <button class="time-slot" onclick="selectTime('${timeStr}')">
+                            ${timeStr}
+                        </button>
+                    `);
+                }
             }
         }
         
-        container.innerHTML = slots.join('');
+        container.innerHTML = slots.join('') || '<p>No hay horarios disponibles</p>';
         
     } catch (error) {
-        console.error('Error cargando horarios:', error);
-        container.innerHTML = '<p>Error al cargar horarios. Intenta de nuevo.</p>';
+        console.error('Error completo:', error);
+        container.innerHTML = `
+            <div style="text-align: center; color: #e74c3c; padding: 20px;">
+                <i class="fas fa-exclamation-circle" style="font-size: 2rem; margin-bottom: 10px; display: block;"></i>
+                <p>Error al cargar horarios</p>
+                <p style="font-size: 0.8rem; color: #666; margin-top: 10px;">${error.message}</p>
+                <button onclick="loadAvailableTimes()" class="btn-secondary" style="margin-top: 15px;">
+                    <i class="fas fa-redo"></i> Reintentar
+                </button>
+            </div>
+        `;
     }
 }
 
@@ -145,16 +199,15 @@ function selectTime(time) {
     
     document.querySelectorAll('.time-slot').forEach(btn => {
         btn.classList.remove('selected');
-        if (!btn.disabled && btn.textContent.includes(time)) {
-            btn.classList.add('selected');
-        }
     });
+    
+    event.target.classList.add('selected');
     
     setTimeout(() => {
         document.getElementById('step3').classList.add('hidden');
         document.getElementById('step4').classList.remove('hidden');
         updateSummary();
-    }, 300);
+    }, 200);
 }
 
 function updateSummary() {
@@ -168,19 +221,30 @@ function updateSummary() {
 
 async function confirmAppointment() {
     const btn = document.querySelector('#step4 .btn-primary');
+    const originalText = btn.innerHTML;
     btn.disabled = true;
     btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Agendando...';
     
     try {
         const appointment = {
-            ...appointmentData,
+            clientId: appointmentData.clientId,
+            clientName: appointmentData.clientName,
+            phone: appointmentData.phone,
+            service: appointmentData.service,
+            serviceName: appointmentData.serviceName,
+            duration: appointmentData.duration,
+            date: appointmentData.date,
+            time: appointmentData.time,
             status: 'confirmed',
             createdAt: new Date().toISOString(),
             reminderSent: false,
             whatsappReminder: document.getElementById('whatsappReminder').checked
         };
         
-        const docRef = await appointmentsCollection.add(appointment);
+        console.log('Guardando cita:', appointment);
+        
+        const docRef = await db.collection('appointments').add(appointment);
+        console.log('Cita guardada con ID:', docRef.id);
         
         if (appointment.whatsappReminder) {
             await sendAppointmentWhatsApp(appointment);
@@ -192,19 +256,21 @@ async function confirmAppointment() {
         document.getElementById('appointmentDetails').innerHTML = `
             <div class="detail-box">
                 <p><strong>${appointment.serviceName}</strong></p>
-                <p>📅 ${selectedDate.toLocaleDateString('es-MX')}</p>
+                <p>📅 ${selectedDate.toLocaleDateString('es-MX', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</p>
                 <p>🕐 ${appointment.time}</p>
                 <p>⏱️ ${appointment.duration} minutos</p>
             </div>
         `;
         
-        await logActivity('appointment', `Nueva cita: ${appointment.clientName} - ${appointment.serviceName}`, appointment.clientId);
+        if (typeof logActivity === 'function') {
+            await logActivity('appointment', `Nueva cita: ${appointment.clientName} - ${appointment.serviceName}`, appointment.clientId);
+        }
         
     } catch (error) {
         console.error('Error agendando cita:', error);
-        showNotification('Error al agendar. Intenta de nuevo.', 'error');
+        showNotification('Error al agendar: ' + error.message, 'error');
         btn.disabled = false;
-        btn.innerHTML = '<i class="fab fa-whatsapp"></i> Confirmar y Agendar';
+        btn.innerHTML = originalText;
     }
 }
 
@@ -212,7 +278,7 @@ async function sendAppointmentWhatsApp(appointment) {
     const message = `¡Hola ${appointment.clientName}! 💕✨\n\n` +
         `Tu cita en *Glam Room Studio* ha sido confirmada:\n\n` +
         `💅 *Servicio:* ${appointment.serviceName}\n` +
-        `📅 *Fecha:* ${new Date(appointment.date).toLocaleDateString('es-MX', { weekday: 'long', month: 'long', day: 'numeric' })}\n` +
+        `📅 *Fecha:* ${new Date(appointment.date + 'T00:00:00').toLocaleDateString('es-MX', { weekday: 'long', month: 'long', day: 'numeric' })}\n` +
         `🕐 *Hora:* ${appointment.time}\n` +
         `⏱️ *Duración:* ${appointment.duration} minutos\n\n` +
         `📍 Dirección: [Tu dirección]\n` +
@@ -227,12 +293,16 @@ async function sendAppointmentWhatsApp(appointment) {
     const encodedMsg = encodeURIComponent(message);
     window.open(`https://wa.me/${phone}?text=${encodedMsg}`, '_blank');
     
-    await db.collection('whatsapp_notifications').add({
-        phone: appointment.phone,
-        message: message,
-        type: 'appointment_confirmation',
-        sentAt: new Date().toISOString()
-    });
+    try {
+        await db.collection('whatsapp_notifications').add({
+            phone: appointment.phone,
+            message: message,
+            type: 'appointment_confirmation',
+            sentAt: new Date().toISOString()
+        });
+    } catch (e) {
+        console.log('No se pudo guardar log de WhatsApp:', e);
+    }
 }
 
 async function showMyAppointments() {
@@ -241,29 +311,41 @@ async function showMyAppointments() {
     showScreen('myAppointmentsScreen');
     
     const list = document.getElementById('myAppointmentsList');
-    list.innerHTML = '<p>Cargando tus citas...</p>';
+    list.innerHTML = '<p><i class="fas fa-spinner fa-spin"></i> Cargando tus citas...</p>';
     
     try {
-        const snapshot = await appointmentsCollection
+        const today = new Date();
+        const todayString = today.toISOString().split('T')[0];
+        
+        const snapshot = await db.collection('appointments')
             .where('clientId', '==', currentClient.id)
-            .where('date', '>=', new Date().toISOString().split('T')[0])
-            .orderBy('date', 'asc')
-            .orderBy('time', 'asc')
+            .where('date', '>=', todayString)
             .get();
         
-        if (snapshot.empty) {
+        const appointments = [];
+        snapshot.forEach(doc => {
+            appointments.push({ id: doc.id, ...doc.data() });
+        });
+        
+        appointments.sort((a, b) => {
+            if (a.date !== b.date) return a.date.localeCompare(b.date);
+            return a.time.localeCompare(b.time);
+        });
+        
+        if (appointments.length === 0) {
             list.innerHTML = `
                 <div class="empty-state">
-                    <i class="fas fa-calendar-times"></i>
+                    <i class="fas fa-calendar-times" style="font-size: 4rem; color: var(--light-pink); margin-bottom: 20px; display: block;"></i>
                     <p>No tienes citas próximas</p>
-                    <button onclick="initAppointmentBooking()" class="btn-primary">Agendar ahora</button>
+                    <button onclick="initAppointmentBooking()" class="btn-primary" style="margin-top: 20px;">
+                        Agendar ahora
+                    </button>
                 </div>
             `;
             return;
         }
         
-        list.innerHTML = snapshot.docs.map(doc => {
-            const apt = doc.data();
+        list.innerHTML = appointments.map(apt => {
             const aptDate = new Date(apt.date + 'T' + apt.time);
             const isPast = aptDate < new Date();
             
@@ -271,14 +353,14 @@ async function showMyAppointments() {
                 <div class="appointment-card ${isPast ? 'past' : ''}">
                     <div class="appointment-info">
                         <h4>${apt.serviceName}</h4>
-                        <p><i class="fas fa-calendar"></i> ${new Date(apt.date).toLocaleDateString('es-MX')}</p>
+                        <p><i class="fas fa-calendar"></i> ${new Date(apt.date + 'T00:00:00').toLocaleDateString('es-MX')}</p>
                         <p><i class="fas fa-clock"></i> ${apt.time}</p>
                         <p><i class="fas fa-hourglass-half"></i> ${apt.duration} min</p>
                     </div>
                     <div class="appointment-status">
                         <span class="badge ${apt.status}">${apt.status === 'confirmed' ? '✓ Confirmada' : '⏳ Pendiente'}</span>
-                        ${!isPast ? `
-                            <button onclick="cancelAppointment('${doc.id}')" class="btn-cancel">
+                        ${!isPast && apt.status !== 'cancelled' ? `
+                            <button onclick="cancelAppointment('${apt.id}')" class="btn-cancel">
                                 <i class="fas fa-times"></i> Cancelar
                             </button>
                         ` : ''}
@@ -289,7 +371,15 @@ async function showMyAppointments() {
         
     } catch (error) {
         console.error('Error cargando citas:', error);
-        list.innerHTML = '<p>Error al cargar citas. Intenta de nuevo.</p>';
+        list.innerHTML = `
+            <div style="text-align: center; padding: 40px; color: #e74c3c;">
+                <i class="fas fa-exclamation-circle" style="font-size: 3rem; margin-bottom: 15px; display: block;"></i>
+                <p>Error al cargar citas</p>
+                <button onclick="showMyAppointments()" class="btn-secondary" style="margin-top: 15px;">
+                    Reintentar
+                </button>
+            </div>
+        `;
     }
 }
 
@@ -297,7 +387,7 @@ async function cancelAppointment(appointmentId) {
     if (!confirm('¿Segura que quieres cancelar esta cita?')) return;
     
     try {
-        await appointmentsCollection.doc(appointmentId).update({
+        await db.collection('appointments').doc(appointmentId).update({
             status: 'cancelled',
             cancelledAt: new Date().toISOString()
         });
@@ -306,7 +396,8 @@ async function cancelAppointment(appointmentId) {
         showMyAppointments();
         
     } catch (error) {
-        showNotification('Error al cancelar', 'error');
+        console.error('Error cancelando cita:', error);
+        showNotification('Error al cancelar: ' + error.message, 'error');
     }
 }
 
