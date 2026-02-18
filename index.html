@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Glam Room - Tarjeta de Lealtad</title>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <!-- Login de Admin -->
+    <div id="adminLoginModal" class="modal hidden">
+        <div class="modal-content">
+            <span class="close" onclick="closeAdminLogin()">&times;</span>
+            <h2>👑 Acceso Administrador</h2>
+            <input type="email" id="adminEmail" placeholder="Correo electrónico">
+            <input type="password" id="adminPassword" placeholder="Contraseña">
+            <button onclick="loginAdmin()" class="btn-primary">Ingresar</button>
+        </div>
+    </div>
+
+    <div class="container">
+        <!-- Pantalla de Login Cliente -->
+        <div id="loginScreen" class="screen active">
+            <div class="logo-container">
+                <img src="assets/logo.png" alt="Glam Room" class="logo">
+            </div>
+            <div class="login-box">
+                <h2>✨ Bienvenida ✨</h2>
+                <p>Ingresa tu número de teléfono para ver tu tarjeta</p>
+                <input type="tel" id="phoneInput" placeholder="Ej: 5512345678" maxlength="10">
+                <button onclick="login()" class="btn-primary">Ver mi Tarjeta</button>
+                <p class="admin-link" onclick="showAdminLogin()">Acceso Administrador</p>
+            </div>
+        </div>
+
+        <!-- Pantalla de Tarjeta Cliente -->
+        <div id="cardScreen" class="screen">
+            <div class="card-header">
+                <img src="assets/logo.png" alt="Glam Room" class="logo-small">
+                <button onclick="logout()" class="btn-logout">Salir</button>
+            </div>
+            
+            <div class="loyalty-card">
+                <div class="card-glass">
+                    <div class="card-content">
+                        <h3>💕 Tarjeta Glam 💕</h3>
+                        <p class="client-name" id="clientName">Nombre Cliente</p>
+                        <div class="tier-badge" id="tierBadge">Nivel: ✨ Bronce</div>
+                        <div class="stars-container" id="starsContainer"></div>
+                        <p class="progress-text">
+                            <span id="currentStars">0</span> / <span id="maxStars">10</span> visitas
+                        </p>
+                        <div class="next-reward" id="nextReward">
+                            Próxima recompensa: <span id="rewardName">Manicure gratis</span>
+                        </div>
+                        <div class="reward-status" id="rewardStatus">
+                            🎉 ¡Felicidades! Canjea tu recompensa 🎉
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="levels-info">
+                <h4>Niveles de Membresía</h4>
+                <div class="levels-grid">
+                    <div class="level-item active" data-tier="bronze">
+                        <i class="fas fa-medal"></i>
+                        <span>Bronce</span>
+                        <small>0-9 ⭐</small>
+                    </div>
+                    <div class="level-item" data-tier="silver">
+                        <i class="fas fa-medal"></i>
+                        <span>Plata</span>
+                        <small>10-24 ⭐</small>
+                    </div>
+                    <div class="level-item" data-tier="gold">
+                        <i class="fas fa-crown"></i>
+                        <span>Oro</span>
+                        <small>25-49 ⭐</small>
+                    </div>
+                    <div class="level-item" data-tier="diamond">
+                        <i class="fas fa-gem"></i>
+                        <span>Diamante</span>
+                        <small>50+ ⭐</small>
+                    </div>
+                </div>
+            </div>
+
+            <div class="history-section">
+                <h4>📅 Historial de Visitas</h4>
+                <ul id="visitHistory" class="history-list"></ul>
+            </div>
+        </div>
+
+        <!-- Panel Administrador -->
+        <div id="adminScreen" class="screen">
+            <div class="admin-header">
+                <div class="admin-title">
+                    <h2>👑 Panel de Control</h2>
+                    <span id="adminUserEmail"></span>
+                </div>
+                <div class="admin-actions-header">
+                    <button onclick="showDashboard()" class="btn-nav active" data-tab="dashboard">
+                        <i class="fas fa-chart-line"></i> Estadísticas
+                    </button>
+                    <button onclick="showClients()" class="btn-nav" data-tab="clients">
+                        <i class="fas fa-users"></i> Clientes
+                    </button>
+                    <button onclick="logoutAdmin()" class="btn-logout">Cerrar Sesión</button>
+                </div>
+            </div>
+
+            <!-- Dashboard de Estadísticas -->
+            <div id="dashboardTab" class="admin-tab active">
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <i class="fas fa-users"></i>
+                        <div>
+                            <h3 id="totalClients">0</h3>
+                            <p>Clientes Totales</p>
+                        </div>
+                    </div>
+                    <div class="stat-card highlight">
+                        <i class="fas fa-star"></i>
+                        <div>
+                            <h3 id="totalVisits">0</h3>
+                            <p>Visitas este Mes</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <i class="fas fa-gift"></i>
+                        <div>
+                            <h3 id="pendingRewards">0</h3>
+                            <p>Recompensas Pendientes</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <i class="fas fa-crown"></i>
+                        <div>
+                            <h3 id="vipClients">0</h3>
+                            <p>Clientes VIP</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="charts-container">
+                    <div class="chart-box">
+                        <h4>Visitas por Semana</h4>
+                        <canvas id="visitsChart"></canvas>
+                    </div>
+                    <div class="chart-box">
+                        <h4>Distribución de Niveles</h4>
+                        <canvas id="tiersChart"></canvas>
+                    </div>
+                </div>
+
+                <div class="recent-activity">
+                    <h4>Actividad Reciente</h4>
+                    <ul id="recentActivityList"></ul>
+                </div>
+            </div>
+
+            <!-- Gestión de Clientes -->
+            <div id="clientsTab" class="admin-tab">
+                <div class="search-section">
+                    <div class="search-box">
+                        <input type="tel" id="adminPhoneInput" placeholder="Buscar por teléfono...">
+                        <button onclick="searchClient()" class="btn-primary">
+                            <i class="fas fa-search"></i>
+                        </button>
+                    </div>
+                    <button onclick="showNewClientForm()" class="btn-success">
+                        <i class="fas fa-plus"></i> Nuevo Cliente
+                    </button>
+                </div>
+
+                <!-- Info Cliente Encontrado -->
+                <div id="adminClientInfo" class="client-detail-card hidden">
+                    <div class="client-header">
+                        <div>
+                            <h3 id="adminClientName">Cliente</h3>
+                            <span id="adminClientPhone" class="phone-tag"></span>
+                            <span id="adminClientTier" class="tier-tag">Bronce</span>
+                        </div>
+                        <div class="client-stats">
+                            <div class="stat">
+                                <span id="adminClientTotalStars">0</span>
+                                <small>Estrellas Totales</small>
+                            </div>
+                            <div class="stat">
+                                <span id="adminClientCurrentStars">0</span>
+                                <small>En Tarjeta Actual</small>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="progress-bar-container">
+                        <div class="progress-bar" id="clientProgressBar"></div>
+                        <span id="progressText">0/10</span>
+                    </div>
+
+                    <div class="admin-actions">
+                        <button onclick="addStar()" class="btn-primary">
+                            <i class="fas fa-plus"></i> Agregar Visita
+                        </button>
+                        <button onclick="redeemReward()" class="btn-reward hidden" id="redeemBtn">
+                            <i class="fas fa-gift"></i> Canjear Recompensa
+                        </button>
+                        <button onclick="sendWhatsAppNotification()" class="btn-whatsapp" id="whatsappBtn">
+                            <i class="fab fa-whatsapp"></i> Notificar WhatsApp
+                        </button>
+                    </div>
+
+                    <div class="client-history">
+                        <h5>Historial Completo</h5>
+                        <ul id="adminClientHistory"></ul>
+                    </div>
+                </div>
+
+                <!-- Formulario Nuevo Cliente -->
+                <div id="newClientForm" class="form-card hidden">
+                    <h4>➕ Crear Nuevo Cliente</h4>
+                    <input type="text" id="newClientName" placeholder="Nombre completo *">
+                    <input type="tel" id="newClientPhone" placeholder="Teléfono (10 dígitos) *" maxlength="10">
+                    <input type="email" id="newClientEmail" placeholder="Correo (opcional)">
+                    <div class="form-actions">
+                        <button onclick="createClient()" class="btn-primary">Crear Tarjeta</button>
+                        <button onclick="hideNewClientForm()" class="btn-secondary">Cancelar</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Notificación -->
+    <div id="notification" class="notification"></div>
+
+    <!-- Scripts -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-auth-compat.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <script src="js/firebase-config.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/whatsapp.js"></script>
+    <script src="js/admin-dashboard.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>
