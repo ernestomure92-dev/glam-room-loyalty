@@ -42,7 +42,21 @@ function loadClientCard() {
     // Determinar nivel
     let tier = TIERS.bronze;
     let maxStars = 10;
-    
+        // Agregar botón de citas si no existe
+    if (!document.getElementById('btnAppointments')) {
+        const btnContainer = document.createElement('div');
+        btnContainer.style.marginTop = '20px';
+        btnContainer.innerHTML = `
+            <button onclick="showMyAppointments()" class="btn-secondary" style="width: 100%; margin-bottom: 10px;">
+                <i class="fas fa-calendar-alt"></i> Ver mis citas
+            </button>
+            <button onclick="initAppointmentBooking('${currentClient.id}', '${currentClient.name}')" class="btn-primary" style="width: 100%;">
+                <i class="fas fa-calendar-plus"></i> Agendar nueva cita
+            </button>
+        `;
+        document.querySelector('.card-content').appendChild(btnContainer);
+    }
+}    
     if (totalStars >= 50) {
         tier = TIERS.diamond;
         maxStars = '∞';
