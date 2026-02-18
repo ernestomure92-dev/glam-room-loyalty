@@ -4,24 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Glam Room - Tarjeta de Lealtad</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>💅</text></svg>">
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="css/styles.css">
 </head>
 <body>
-    <!-- Login de Admin -->
-    <div id="adminLoginModal" class="modal hidden">
-        <div class="modal-content">
-            <span class="close" onclick="closeAdminLogin()">&times;</span>
-            <h2>👑 Acceso Administrador</h2>
-            <input type="email" id="adminEmail" placeholder="Correo electrónico">
-            <input type="password" id="adminPassword" placeholder="Contraseña">
-            <button onclick="loginAdmin()" class="btn-primary">Ingresar</button>
-        </div>
-    </div>
-
     <div class="container">
-        <!-- Pantalla de Login Cliente -->
+        <!-- Login Cliente -->
         <div id="loginScreen" class="screen active">
             <div class="logo-container">
                 <img src="assets/logo.png" alt="Glam Room" class="logo">
@@ -31,11 +21,11 @@
                 <p>Ingresa tu número de teléfono para ver tu tarjeta</p>
                 <input type="tel" id="phoneInput" placeholder="Ej: 5512345678" maxlength="10">
                 <button onclick="login()" class="btn-primary">Ver mi Tarjeta</button>
-                <p class="admin-link" onclick="showAdminLogin()">Acceso Administrador</p>
+                <a href="admin.html" class="admin-link">Acceso Administrador</a>
             </div>
         </div>
 
-        <!-- Pantalla de Tarjeta Cliente -->
+        <!-- Tarjeta de Lealtad -->
         <div id="cardScreen" class="screen">
             <div class="card-header">
                 <img src="assets/logo.png" alt="Glam Room" class="logo-small">
@@ -46,15 +36,13 @@
                 <div class="card-glass">
                     <div class="card-content">
                         <h3>💕 Tarjeta Glam 💕</h3>
-                        <p class="client-name" id="clientName">Nombre Cliente</p>
+                        <p class="client-name" id="clientName">-</p>
                         <div class="tier-badge" id="tierBadge">Nivel: ✨ Bronce</div>
                         <div class="stars-container" id="starsContainer"></div>
                         <p class="progress-text">
                             <span id="currentStars">0</span> / <span id="maxStars">10</span> visitas
                         </p>
-                        <div class="next-reward" id="nextReward">
-                            Próxima recompensa: <span id="rewardName">Manicure gratis</span>
-                        </div>
+                        <div class="next-reward" id="nextReward"></div>
                         <div class="reward-status" id="rewardStatus">
                             🎉 ¡Felicidades! Canjea tu recompensa 🎉
                         </div>
@@ -88,15 +76,16 @@
                 </div>
             </div>
 
-            <div class="quick-actions" id="quickActions">
+            <!-- Acciones Rápidas -->
+            <div class="quick-actions">
                 <h4>¿Qué deseas hacer?</h4>
-                <button onclick="initAppointmentBooking()" class="btn-primary">
+                <a href="agendar.html" class="btn-primary">
                     <i class="fas fa-calendar-plus"></i> Agendar Nueva Cita
-                </button>
-                <button onclick="showMyAppointments()" class="btn-secondary">
+                </a>
+                <a href="mis-citas.html" class="btn-secondary">
                     <i class="fas fa-calendar-alt"></i> Ver mis Citas
-                </button>
-                <a href="https://www.instagram.com/theglamroom.mx/" target="_blank" class="btn-instagram">
+                </a>
+                <a href="https://instagram.com/theglamroom.mx" target="_blank" class="btn-instagram">
                     <i class="fab fa-instagram"></i> Ver nuestro trabajo
                 </a>
             </div>
@@ -106,318 +95,29 @@
                 <ul id="visitHistory" class="history-list"></ul>
             </div>
 
-            <!-- Sección Instagram -->
+            <!-- Instagram -->
             <div class="instagram-section">
-                <h3><i class="fab fa-instagram"></i> Síguenos en Instagram</h3>
+                <h3><i class="fab fa-instagram"></i> Síguenos</h3>
                 <p>@theglamroom.mx</p>
                 <div class="instagram-embed">
-                    <iframe 
-                        src="https://www.instagram.com/theglamroom.mx/embed" 
-                        frameborder="0" 
-                        scrolling="no" 
-                        allowtransparency="true"
-                        class="instagram-iframe">
-                    </iframe>
+                    <iframe src="https://www.instagram.com/theglamroom.mx/embed" 
+                            class="instagram-iframe" frameborder="0" scrolling="no"></iframe>
                 </div>
-            </div>
-        </div>
-
-        <!-- Pantalla de Agendamiento de Citas -->
-        <div id="appointmentScreen" class="screen">
-            <div class="card-header">
-                <img src="assets/logo.png" alt="Glam Room" class="logo-small">
-                <button onclick="backToCard()" class="btn-logout">← Volver</button>
-            </div>
-
-            <div class="appointment-container">
-                <h2>💅 Agenda tu Cita</h2>
-                <p class="subtitle">Elige fecha y hora para tu servicio</p>
-
-                <!-- Paso 1: Seleccionar Servicio -->
-                <div class="step" id="step1">
-                    <h3>1. ¿Qué servicio necesitas?</h3>
-                    <div class="services-grid">
-                        <div class="service-card" onclick="selectService('manicure', 'Manicure', 60)">
-                            <i class="fas fa-hand-sparkles"></i>
-                            <span>Manicure</span>
-                            <small>60 min</small>
-                        </div>
-                        <div class="service-card" onclick="selectService('pedicure', 'Pedicure', 60)">
-                            <i class="fas fa-shoe-prints"></i>
-                            <span>Pedicure</span>
-                            <small>60 min</small>
-                        </div>
-                        <div class="service-card" onclick="selectService('gel', 'Uñas Gel', 90)">
-                            <i class="fas fa-gem"></i>
-                            <span>Uñas Gel</span>
-                            <small>90 min</small>
-                        </div>
-                        <div class="service-card" onclick="selectService('facial', 'Facial', 45)">
-                            <i class="fas fa-spa"></i>
-                            <span>Facial</span>
-                            <small>45 min</small>
-                        </div>
-                        <div class="service-card" onclick="selectService('maquillaje', 'Maquillaje', 60)">
-                            <i class="fas fa-magic"></i>
-                            <span>Maquillaje</span>
-                            <small>60 min</small>
-                        </div>
-                        <div class="service-card" onclick="selectService('peinado', 'Peinado', 45)">
-                            <i class="fas fa-wind"></i>
-                            <span>Peinado</span>
-                            <small>45 min</small>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Paso 2: Seleccionar Fecha -->
-                <div class="step hidden" id="step2">
-                    <h3>2. ¿Qué día te gustaría?</h3>
-                    <div class="calendar-container">
-                        <div class="calendar-header">
-                            <button onclick="changeMonth(-1)" class="btn-nav"><i class="fas fa-chevron-left"></i></button>
-                            <span id="currentMonth">Enero 2024</span>
-                            <button onclick="changeMonth(1)" class="btn-nav"><i class="fas fa-chevron-right"></i></button>
-                        </div>
-                        <div class="calendar-grid" id="calendarGrid"></div>
-                    </div>
-                    <button onclick="backToStep(1)" class="btn-secondary">← Anterior</button>
-                </div>
-
-                <!-- Paso 3: Seleccionar Hora -->
-                <div class="step hidden" id="step3">
-                    <h3>3. ¿A qué hora?</h3>
-                    <div class="time-slots" id="timeSlots"></div>
-                    <p class="note" id="selectedDateDisplay"></p>
-                    <button onclick="backToStep(2)" class="btn-secondary">← Anterior</button>
-                </div>
-
-                <!-- Paso 4: Confirmar -->
-                <div class="step hidden" id="step4">
-                    <h3>4. Confirma tu cita</h3>
-                    <div class="appointment-summary">
-                        <div class="summary-item">
-                            <span>Servicio:</span>
-                            <strong id="summaryService">-</strong>
-                        </div>
-                        <div class="summary-item">
-                            <span>Fecha:</span>
-                            <strong id="summaryDate">-</strong>
-                        </div>
-                        <div class="summary-item">
-                            <span>Hora:</span>
-                            <strong id="summaryTime">-</strong>
-                        </div>
-                        <div class="summary-item">
-                            <span>Duración:</span>
-                            <strong id="summaryDuration">-</strong>
-                        </div>
-                    </div>
-                    
-                    <div class="whatsapp-confirm">
-                        <label>
-                            <input type="checkbox" id="whatsappReminder" checked>
-                            Recibir recordatorio por WhatsApp
-                        </label>
-                    </div>
-
-                    <button onclick="confirmAppointment()" class="btn-primary btn-large">
-                        <i class="fab fa-whatsapp"></i> Confirmar y Agendar
-                    </button>
-                    <button onclick="backToStep(3)" class="btn-secondary">← Anterior</button>
-                </div>
-
-                <!-- Confirmación Final -->
-                <div class="step hidden" id="stepSuccess">
-                    <div class="success-message">
-                        <i class="fas fa-check-circle"></i>
-                        <h3>¡Cita Agendada!</h3>
-                        <p>Te enviamos un WhatsApp con los detalles</p>
-                        <div id="appointmentDetails"></div>
-                        <button onclick="finishAppointment()" class="btn-primary">Ver mis citas</button>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Pantalla de Mis Citas -->
-        <div id="myAppointmentsScreen" class="screen">
-            <div class="card-header">
-                <h2>📅 Mis Citas</h2>
-                <button onclick="backToCard()" class="btn-logout">← Volver</button>
-            </div>
-            <div class="appointments-list" id="myAppointmentsList"></div>
-        </div>
-
-        <!-- Panel Administrador -->
-        <div id="adminScreen" class="screen">
-            <div class="admin-header">
-                <div class="admin-title">
-                    <h2>👑 Panel de Control</h2>
-                    <span id="adminUserEmail"></span>
-                </div>
-                <div class="admin-actions-header">
-                    <button onclick="showDashboard()" class="btn-nav active" data-tab="dashboard">
-                        <i class="fas fa-chart-line"></i> Estadísticas
-                    </button>
-                    <button onclick="showClients()" class="btn-nav" data-tab="clients">
-                        <i class="fas fa-users"></i> Clientes
-                    </button>
-                    <button onclick="showAdminAppointments()" class="btn-nav" data-tab="appointments">
-                        <i class="fas fa-calendar"></i> Citas
-                    </button>
-                    <button onclick="logoutAdmin()" class="btn-logout">Cerrar Sesión</button>
-                </div>
-            </div>
-
-            <!-- Dashboard de Estadísticas -->
-            <div id="dashboardTab" class="admin-tab active">
-                <div class="stats-grid">
-                    <div class="stat-card">
-                        <i class="fas fa-users"></i>
-                        <div>
-                            <h3 id="totalClients">0</h3>
-                            <p>Clientes Totales</p>
-                        </div>
-                    </div>
-                    <div class="stat-card highlight">
-                        <i class="fas fa-star"></i>
-                        <div>
-                            <h3 id="totalVisits">0</h3>
-                            <p>Visitas este Mes</p>
-                        </div>
-                    </div>
-                    <div class="stat-card">
-                        <i class="fas fa-gift"></i>
-                        <div>
-                            <h3 id="pendingRewards">0</h3>
-                            <p>Recompensas Pendientes</p>
-                        </div>
-                    </div>
-                    <div class="stat-card">
-                        <i class="fas fa-crown"></i>
-                        <div>
-                            <h3 id="vipClients">0</h3>
-                            <p>Clientes VIP</p>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="charts-container">
-                    <div class="chart-box">
-                        <h4>Visitas por Semana</h4>
-                        <canvas id="visitsChart"></canvas>
-                    </div>
-                    <div class="chart-box">
-                        <h4>Distribución de Niveles</h4>
-                        <canvas id="tiersChart"></canvas>
-                    </div>
-                </div>
-
-                <div class="recent-activity">
-                    <h4>Actividad Reciente</h4>
-                    <ul id="recentActivityList"></ul>
-                </div>
-            </div>
-
-            <!-- Gestión de Clientes -->
-            <div id="clientsTab" class="admin-tab">
-                <div class="search-section">
-                    <div class="search-box">
-                        <input type="tel" id="adminPhoneInput" placeholder="Buscar por teléfono...">
-                        <button onclick="searchClient()" class="btn-primary">
-                            <i class="fas fa-search"></i>
-                        </button>
-                    </div>
-                    <button onclick="showNewClientForm()" class="btn-success">
-                        <i class="fas fa-plus"></i> Nuevo Cliente
-                    </button>
-                </div>
-
-                <div id="adminClientInfo" class="client-detail-card hidden">
-                    <div class="client-header">
-                        <div>
-                            <h3 id="adminClientName">Cliente</h3>
-                            <span id="adminClientPhone" class="phone-tag"></span>
-                            <span id="adminClientTier" class="tier-tag">Bronce</span>
-                        </div>
-                        <div class="client-stats">
-                            <div class="stat">
-                                <span id="adminClientTotalStars">0</span>
-                                <small>Estrellas Totales</small>
-                            </div>
-                            <div class="stat">
-                                <span id="adminClientCurrentStars">0</span>
-                                <small>En Tarjeta Actual</small>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="progress-bar-container">
-                        <div class="progress-bar" id="clientProgressBar"></div>
-                        <span id="progressText">0/10</span>
-                    </div>
-
-                    <div class="admin-actions">
-                        <button onclick="addStar()" class="btn-primary">
-                            <i class="fas fa-plus"></i> Agregar Visita
-                        </button>
-                        <button onclick="redeemReward()" class="btn-reward hidden" id="redeemBtn">
-                            <i class="fas fa-gift"></i> Canjear Recompensa
-                        </button>
-                        <button onclick="sendWhatsAppNotification()" class="btn-whatsapp" id="whatsappBtn">
-                            <i class="fab fa-whatsapp"></i> Notificar WhatsApp
-                        </button>
-                    </div>
-
-                    <div class="client-history">
-                        <h5>Historial Completo</h5>
-                        <ul id="adminClientHistory"></ul>
-                    </div>
-                </div>
-
-                <div id="newClientForm" class="form-card hidden">
-                    <h4>➕ Crear Nuevo Cliente</h4>
-                    <input type="text" id="newClientName" placeholder="Nombre completo *">
-                    <input type="tel" id="newClientPhone" placeholder="Teléfono (10 dígitos) *" maxlength="10">
-                    <input type="email" id="newClientEmail" placeholder="Correo (opcional)">
-                    <div class="form-actions">
-                        <button onclick="createClient()" class="btn-primary">Crear Tarjeta</button>
-                        <button onclick="hideNewClientForm()" class="btn-secondary">Cancelar</button>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Gestión de Citas (Admin) -->
-            <div id="appointmentsTab" class="admin-tab">
-                <div class="appointments-admin-header">
-                    <h3>Citas del Día</h3>
-                    <input type="date" id="adminDateFilter" onchange="loadAdminAppointments()">
-                </div>
-                <div id="adminAppointmentsList" class="admin-appointments-list"></div>
             </div>
         </div>
     </div>
 
-    <!-- Botón flotante Instagram -->
-    <a href="https://www.instagram.com/theglamroom.mx/" target="_blank" class="instagram-float">
+    <a href="https://instagram.com/theglamroom.mx" target="_blank" class="instagram-float">
         <i class="fab fa-instagram"></i>
     </a>
 
-    <!-- Notificación -->
     <div id="notification" class="notification"></div>
 
     <!-- Scripts -->
     <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-auth-compat.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    
     <script src="js/firebase-config.js"></script>
-    <script src="js/auth.js"></script>
-    <script src="js/whatsapp.js"></script>
-    <script src="js/admin-dashboard.js"></script>
-    <script src="js/appointments.js"></script>
-    <script src="js/app.js"></script>
+    <script src="js/utils.js"></script>
+    <script src="js/main.js"></script>
 </body>
 </html>
