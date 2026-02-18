@@ -1,4 +1,7 @@
-// Dashboard de estadísticas
+// ==========================================
+// DASHBOARD ADMIN - ESTADÍSTICAS
+// ==========================================
+
 let visitsChartInstance = null;
 let tiersChartInstance = null;
 
@@ -12,11 +15,9 @@ async function loadDashboard() {
 
 async function loadStats() {
     try {
-        // Total clientes
         const clientsSnapshot = await clientsCollection.get();
         const totalClients = clientsSnapshot.size;
         
-        // Calcular visitas del mes actual
         const now = new Date();
         const firstDayOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
         
@@ -27,7 +28,6 @@ async function loadStats() {
         clientsSnapshot.forEach(doc => {
             const data = doc.data();
             
-            // Contar visitas del mes
             if (data.visits) {
                 const monthVisits = data.visits.filter(v => 
                     new Date(v.date) >= firstDayOfMonth
@@ -35,14 +35,10 @@ async function loadStats() {
                 totalVisits += monthVisits;
             }
             
-            // Recompensas pendientes (stars >= 10)
             if (data.stars >= 10) pendingRewards++;
-            
-            // Clientes VIP (Diamante = 50+ estrellas totales)
             if (data.totalStars >= 50) vipClients++;
         });
         
-        // Actualizar UI
         document.getElementById('totalClients').textContent = totalClients;
         document.getElementById('totalVisits').textContent = totalVisits;
         document.getElementById('pendingRewards').textContent = pendingRewards;
@@ -56,8 +52,7 @@ async function loadStats() {
 async function loadCharts() {
     const clientsSnapshot = await clientsCollection.get();
     
-    // Datos para gráfico de visitas por semana
-    const visitsByWeek = [0, 0, 0, 0]; // 4 semanas
+    const visitsByWeek = [0, 0, 0, 0];
     const tierCounts = { bronze: 0, silver: 0, gold: 0, diamond: 0 };
     
     const now = new Date();
@@ -65,13 +60,11 @@ async function loadCharts() {
     clientsSnapshot.forEach(doc => {
         const data = doc.data();
         
-        // Contar por niveles
         if (data.totalStars >= 50) tierCounts.diamond++;
         else if (data.totalStars >= 25) tierCounts.gold++;
         else if (data.totalStars >= 10) tierCounts.silver++;
         else tierCounts.bronze++;
         
-        // Visitas por semana del mes actual
         if (data.visits) {
             data.visits.forEach(visit => {
                 const visitDate = new Date(visit.date);
@@ -83,7 +76,6 @@ async function loadCharts() {
         }
     });
     
-    // Gráfico de visitas
     const visitsCtx = document.getElementById('visitsChart').getContext('2d');
     if (visitsChartInstance) visitsChartInstance.destroy();
     
@@ -107,7 +99,6 @@ async function loadCharts() {
         }
     });
     
-    // Gráfico de distribución de niveles
     const tiersCtx = document.getElementById('tiersChart').getContext('2d');
     if (tiersChartInstance) tiersChartInstance.destroy();
     
@@ -123,9 +114,7 @@ async function loadCharts() {
         },
         options: {
             responsive: true,
-            plugins: {
-                legend: { position: 'bottom' }
-            }
+            plugins: { legend: { position: 'bottom' } }
         }
     });
 }
@@ -159,7 +148,8 @@ function getActivityIcon(type) {
         visit: 'fa-star',
         reward: 'fa-gift',
         new_client: 'fa-user-plus',
-        redemption: 'fa-check-circle'
+        redemption: 'fa-check-circle',
+        appointment: 'fa-calendar-check'
     };
     return icons[type] || 'fa-info-circle';
 }
@@ -167,7 +157,7 @@ function getActivityIcon(type) {
 function formatTimeAgo(timestamp) {
     const date = new Date(timestamp);
     const now = new Date();
-    const diff = Math.floor((now - date) / 1000); // segundos
+    const diff = Math.floor((now - date) / 1000);
     
     if (diff < 60) return 'Hace un momento';
     if (diff < 3600) return `Hace ${Math.floor(diff/60)} min`;
@@ -175,7 +165,6 @@ function formatTimeAgo(timestamp) {
     return date.toLocaleDateString('es-MX');
 }
 
-// Registrar actividad
 async function logActivity(type, description, clientId = null) {
     await activityCollection.add({
         type,
@@ -200,4 +189,53 @@ function showClients() {
     document.querySelectorAll('.btn-nav').forEach(b => b.classList.remove('active'));
     document.getElementById('clientsTab').classList.add('active');
     event.target.classList.add('active');
+}
+
+function showAdminAppointments() {
+    document.querySelectorAll('.admin-tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.btn-nav').forEach(b => b.classList.remove('active'));
+    document.getElementById('appointmentsTab').classList.add('active');
+    event.target.classList.add('active');
+    loadAdminAppointments();
+}
+
+// Gestión de citas en admin
+async function loadAdminAppointments() {
+    const dateFilter = document.getElementById('adminDateFilter').value || new Date().toISOString().split('T')[0];
+    const list = document.getElementById('adminAppointmentsList');
+    
+    list.innerHTML = '<p>Cargando citas...</p>';
+    
+    try {
+        const snapshot = await appointmentsCollection
+            .where('date', '==', dateFilter)
+            .orderBy('time', 'asc')
+            .get();
+        
+        if (snapshot.empty) {
+            list.innerHTML = '<p>No hay citas para esta fecha</p>';
+            return;
+        }
+        
+        list.innerHTML = snapshot.docs.map(doc => {
+            const apt = doc.data();
+            return `
+                <div class="appointment-card">
+                    <div class="appointment-info">
+                        <h4>${apt.serviceName}</h4>
+                        <p><i class="fas fa-user"></i> ${apt.clientName}</p>
+                        <p><i class="fas fa-clock"></i> ${apt.time}</p>
+                        <p><i class="fas fa-phone"></i> ${apt.phone}</p>
+                    </div>
+                    <div class="appointment-status">
+                        <span class="badge ${apt.status}">${apt.status === 'confirmed' ? '✓ Confirmada' : '⏳ Pendiente'}</span>
+                    </div>
+                </div>
+            `;
+        }).join('');
+        
+    } catch (error) {
+        console.error('Error cargando citas:', error);
+        list.innerHTML = '<p>Error al cargar citas</p>';
+    }
 }
