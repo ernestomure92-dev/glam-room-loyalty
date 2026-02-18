@@ -21,6 +21,159 @@
 </div>
 
     <div class="container">
+        <!-- Pantalla de Agendamiento de Citas -->
+        <div id="appointmentScreen" class="screen">
+            <div class="card-header">
+                <img src="assets/logo.png" alt="Glam Room" class="logo-small">
+                <button onclick="backToCard()" class="btn-logout">← Volver</button>
+            </div>
+
+            <div class="appointment-container">
+                <h2>💅 Agenda tu Cita</h2>
+                <p class="subtitle">Elige fecha, hora y tu estilista favorita</p>
+
+                <!-- Paso 1: Seleccionar Servicio -->
+                <div class="step" id="step1">
+                    <h3>1. ¿Qué servicio necesitas?</h3>
+                    <div class="services-grid">
+                        <div class="service-card" onclick="selectService('manicure', 'Manicure', 60)">
+                            <i class="fas fa-hand-sparkles"></i>
+                            <span>Manicure</span>
+                            <small>60 min</small>
+                        </div>
+                        <div class="service-card" onclick="selectService('cabello', 'Cabello', 60)">
+                            <i class="fas fa-hand-sparkles"></i>
+                            <span>Cabello</span>
+                            <small>60 min</small>
+                        </div>                        
+                        <div class="service-card" onclick="selectService('pedicure', 'Pedicure', 60)">
+                            <i class="fas fa-shoe-prints"></i>
+                            <span>Pedicure</span>
+                            <small>60 min</small>
+                        </div>
+                        <div class="service-card" onclick="selectService('gel', 'Uñas Gel', 90)">
+                            <i class="fas fa-gem"></i>
+                            <span>Uñas Gel</span>
+                            <small>90 min</small>
+                        </div>
+                        <div class="service-card" onclick="selectService('facial', 'Facial', 45)">
+                            <i class="fas fa-spa"></i>
+                            <span>Facial</span>
+                            <small>45 min</small>
+                        </div>
+                        <div class="service-card" onclick="selectService('maquillaje', 'Maquillaje', 60)">
+                            <i class="fas fa-magic"></i>
+                            <span>Maquillaje</span>
+                            <small>60 min</small>
+                        </div>
+                        <div class="service-card" onclick="selectService('peinado', 'Peinado', 45)">
+                            <i class="fas fa-wind"></i>
+                            <span>Peinado</span>
+                            <small>45 min</small>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Paso 2: Seleccionar Estilista -->
+                <div class="step hidden" id="step2">
+                    <h3>2. ¿Con quién quieres tu cita?</h3>
+                    <div class="stylists-grid" id="stylistsGrid">
+                        <!-- Se carga dinámicamente desde Firebase -->
+                    </div>
+                    <button onclick="backToStep(1)" class="btn-secondary">← Anterior</button>
+                </div>
+
+                <!-- Paso 3: Seleccionar Fecha -->
+                <div class="step hidden" id="step3">
+                    <h3>3. ¿Qué día te gustaría?</h3>
+                    <div class="calendar-container">
+                        <div class="calendar-header">
+                            <button onclick="changeMonth(-1)" class="btn-nav"><i class="fas fa-chevron-left"></i></button>
+                            <span id="currentMonth">Enero 2024</span>
+                            <button onclick="changeMonth(1)" class="btn-nav"><i class="fas fa-chevron-right"></i></button>
+                        </div>
+                        <div class="calendar-grid" id="calendarGrid">
+                            <!-- Días generados dinámicamente -->
+                        </div>
+                    </div>
+                    <button onclick="backToStep(2)" class="btn-secondary">← Anterior</button>
+                </div>
+
+                <!-- Paso 4: Seleccionar Hora -->
+                <div class="step hidden" id="step4">
+                    <h3>4. ¿A qué hora?</h3>
+                    <div class="time-slots" id="timeSlots">
+                        <!-- Horarios generados dinámicamente -->
+                    </div>
+                    <p class="note" id="selectedDateDisplay"></p>
+                    <button onclick="backToStep(3)" class="btn-secondary">← Anterior</button>
+                </div>
+
+                <!-- Paso 5: Confirmar -->
+                <div class="step hidden" id="step5">
+                    <h3>5. Confirma tu cita</h3>
+                    <div class="appointment-summary">
+                        <div class="summary-item">
+                            <span>Servicio:</span>
+                            <strong id="summaryService">-</strong>
+                        </div>
+                        <div class="summary-item">
+                            <span>Estilista:</span>
+                            <strong id="summaryStylist">-</strong>
+                        </div>
+                        <div class="summary-item">
+                            <span>Fecha:</span>
+                            <strong id="summaryDate">-</strong>
+                        </div>
+                        <div class="summary-item">
+                            <span>Hora:</span>
+                            <strong id="summaryTime">-</strong>
+                        </div>
+                        <div class="summary-item">
+                            <span>Duración:</span>
+                            <strong id="summaryDuration">-</strong>
+                        </div>
+                    </div>
+                    
+                    <div class="whatsapp-confirm">
+                        <label>
+                            <input type="checkbox" id="whatsappReminder" checked>
+                            Recibir recordatorio por WhatsApp
+                        </label>
+                    </div>
+
+                    <button onclick="confirmAppointment()" class="btn-primary btn-large">
+                        <i class="fab fa-whatsapp"></i> Confirmar y Agendar
+                    </button>
+                    <button onclick="backToStep(4)" class="btn-secondary">← Anterior</button>
+                </div>
+
+                <!-- Confirmación Final -->
+                <div class="step hidden" id="stepSuccess">
+                    <div class="success-message">
+                        <i class="fas fa-check-circle"></i>
+                        <h3>¡Cita Agendada!</h3>
+                        <p>Te enviamos un WhatsApp con los detalles</p>
+                        <div id="appointmentDetails"></div>
+                        <button onclick="finishAppointment()" class="btn-primary">Ver mis citas</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Pantalla de Mis Citas (Cliente) -->
+        <div id="myAppointmentsScreen" class="screen">
+            <div class="card-header">
+                <h2>📅 Mis Citas</h2>
+                <button onclick="backToCard()" class="btn-logout">← Volver</button>
+            </div>
+            <div class="appointments-list" id="myAppointmentsList">
+                <!-- Se carga dinámicamente -->
+            </div>
+            <button onclick="showAppointmentBooking()" class="btn-primary btn-floating">
+                <i class="fas fa-plus"></i> Nueva Cita
+            </button>
+        </div>        
         <!-- Pantalla de Login Cliente -->
         <div id="loginScreen" class="screen active">
             <div class="logo-container">
