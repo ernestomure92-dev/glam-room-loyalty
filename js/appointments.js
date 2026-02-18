@@ -21,11 +21,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     const isLoggedIn = await checkSession();
     if (!isLoggedIn) {
         showNotification('Debes iniciar sesión primero', 'error');
-        setTimeout(() => navigateTo('index.html'), 2000);
+        setTimeout(() => window.location.href = 'index.html', 2000);
         return;
     }
     
-    // Inicializar
     appointmentData.clientId = currentClient.id;
     appointmentData.clientName = currentClient.name;
     appointmentData.phone = currentClient.id;
@@ -186,8 +185,9 @@ async function confirmAppointment() {
         
         await db.collection('appointments').add(appointment);
         
+        // ENVIAR WHATSAPP AUTOMÁTICAMENTE
         if (appointment.whatsappReminder) {
-            sendWhatsAppConfirmation(appointment);
+            whatsAppService.sendAppointmentConfirmation(appointment);
         }
         
         document.getElementById('step4').classList.add('hidden');
@@ -207,18 +207,6 @@ async function confirmAppointment() {
         btn.disabled = false;
         btn.innerHTML = '<i class="fab fa-whatsapp"></i> Confirmar y Agendar';
     }
-}
-
-function sendWhatsAppConfirmation(apt) {
-    const message = `¡Hola ${apt.clientName}! 💕\n\n` +
-        `Tu cita en *Glam Room* está confirmada:\n\n` +
-        `💅 ${apt.serviceName}\n` +
-        `📅 ${DateUtils.formatDisplay(apt.date)}\n` +
-        `🕐 ${apt.time}\n\n` +
-        `¡Te esperamos! 💖`;
-    
-    const phone = '52' + apt.phone;
-    window.open(`https://wa.me/${phone}?text=${encodeURIComponent(message)}`, '_blank');
 }
 
 function backToStep(step) {
