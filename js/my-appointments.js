@@ -1,5 +1,5 @@
 // ==========================================
-// MY APPOINTMENTS - Ver mis citas (CORREGIDO)
+// MY APPOINTMENTS - Ver mis citas
 // ==========================================
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -10,7 +10,6 @@ async function loadMyAppointments() {
     const list = document.getElementById('appointmentsList');
     if (!list) return;
     
-    // Verificar sesión
     const savedPhone = sessionStorage.getItem('glamRoomClient');
     if (!savedPhone) {
         document.getElementById('myAppointmentsScreen')?.classList.add('hidden');
@@ -21,7 +20,6 @@ async function loadMyAppointments() {
     list.innerHTML = '<p><i class="fas fa-spinner fa-spin"></i> Cargando...</p>';
     
     try {
-        // Cargar TODAS las citas del cliente (incluyendo canceladas)
         const snapshot = await db.collection('appointments')
             .where('clientId', '==', savedPhone)
             .get();
@@ -31,7 +29,6 @@ async function loadMyAppointments() {
             appointments.push({ id: doc.id, ...doc.data() });
         });
         
-        // Ordenar: primero activas por fecha, luego canceladas
         appointments.sort((a, b) => {
             if (a.status === 'cancelled' && b.status !== 'cancelled') return 1;
             if (a.status !== 'cancelled' && b.status === 'cancelled') return -1;
@@ -60,13 +57,10 @@ async function loadMyAppointments() {
                         ${apt.serviceName}
                     </h4>
                     <p style="color: #666; margin: 4px 0;">
-                        <i class="fas fa-calendar"></i> ${formatDisplayDate(apt.date)}
+                        <i class="fas fa-calendar"></i> ${DateUtils.formatDisplay(apt.date)}
                     </p>
                     <p style="color: #666; margin: 4px 0;">
                         <i class="fas fa-clock"></i> ${apt.time}
-                    </p>
-                    <p style="color: #666; margin: 4px 0;">
-                        <i class="fas fa-hourglass-half"></i> ${apt.duration} min
                     </p>
                     ${isCancelled ? '<p style="color: #e74c3c; margin-top: 8px;"><i class="fas fa-ban"></i> Cancelada</p>' : ''}
                 </div>
@@ -89,44 +83,26 @@ async function loadMyAppointments() {
     }
 }
 
-// CORREGIDO: Función de cancelar con mejor manejo de errores
 async function cancelAppointment(id) {
     if (!confirm('¿Segura que quieres cancelar esta cita?')) return;
     
     try {
+        const doc = await db.collection('appointments').doc(id).get();
+        const apt = doc.data();
+        
         await db.collection('appointments').doc(id).update({
             status: 'cancelled',
             cancelledAt: new Date().toISOString(),
             cancelledBy: 'client'
         });
         
-        showNotification('Cita cancelada correctamente', 'success');
-        loadMyAppointments(); // Recargar la lista
+        // ENVIAR WHATSAPP DE CANCELACIÓN
+        whatsAppService.sendCancellationNotice(apt, 'cliente');
+        
+        showNotification('Cita cancelada', 'success');
+        loadMyAppointments();
         
     } catch (error) {
-        console.error('Error cancelando:', error);
-        showNotification('Error al cancelar: ' + error.message, 'error');
+        showNotification('Error: ' + error.message, 'error');
     }
-}
-
-function formatDisplayDate(dateString) {
-    return new Date(dateString + 'T00:00:00').toLocaleDateString('es-MX', {
-        weekday: 'long',
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric'
-    });
-}
-
-function showNotification(message, type = 'success') {
-    const notif = document.getElementById('notification');
-    if (!notif) return;
-    
-    notif.textContent = message;
-    notif.className = 'notification ' + type;
-    notif.classList.add('show');
-    
-    setTimeout(() => {
-        notif.classList.remove('show');
-    }, 3000);
 }
