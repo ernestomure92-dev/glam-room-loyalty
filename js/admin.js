@@ -285,7 +285,7 @@ async function logActivity(type, description, clientId = null) {
 }
 
 // ==========================================
-// GESTIÓN DE CLIENTES
+// GESTIÓN DE CLIENTES - CORREGIDO
 // ==========================================
 
 async function searchClient() {
@@ -312,6 +312,7 @@ async function searchClient() {
     }
 }
 
+// CORREGIDO: Usar innerHTML para evitar duplicados
 function showClientInfo() {
     const client = currentAdminClient;
     const totalStars = client.totalStars || client.stars || 0;
@@ -322,38 +323,35 @@ function showClientInfo() {
     else if (totalStars >= 25) tier = TIERS.gold;
     else if (totalStars >= 10) tier = TIERS.silver;
     
-    document.getElementById('clientInfo').classList.remove('hidden');
+    const clientInfoDiv = document.getElementById('clientInfo');
+    clientInfoDiv.classList.remove('hidden');
     document.getElementById('newClientForm').classList.add('hidden');
     
-    // Actualizar info
-    const header = document.querySelector('#clientInfo .client-header') || document.getElementById('clientInfo');
-    
-    header.innerHTML = `
-        <div>
-            <h3>${client.name}</h3>
-            <span class="phone-tag">${client.id}</span>
-            <span class="tier-tag" style="background: ${tier.color}">${tier.name}</span>
-        </div>
-        <div class="client-stats">
-            <div class="stat">
-                <span>${totalStars}</span>
-                <small>Total</small>
+    // LIMPIAR Y RECREAR TODO EL CONTENIDO (EVITA DUPLICADOS)
+    clientInfoDiv.innerHTML = `
+        <div class="client-header">
+            <div>
+                <h3>${client.name}</h3>
+                <span class="phone-tag">${client.id}</span>
+                <span class="tier-tag" style="background: ${tier.color}">${tier.name}</span>
             </div>
-            <div class="stat">
-                <span>${currentStars}</span>
-                <small>Actual</small>
+            <div class="client-stats">
+                <div class="stat">
+                    <span>${totalStars}</span>
+                    <small>Total</small>
+                </div>
+                <div class="stat">
+                    <span>${currentStars}</span>
+                    <small>Actual</small>
+                </div>
             </div>
         </div>
-    `;
-    
-    // Barra de progreso
-    const progress = Math.min((currentStars / 10) * 100, 100);
-    
-    const progressHTML = `
+        
         <div class="progress-bar-container">
-            <div class="progress-bar" style="width: ${progress}%"></div>
+            <div class="progress-bar" style="width: ${Math.min((currentStars / 10) * 100, 100)}%"></div>
             <span>${currentStars}/10</span>
         </div>
+        
         <div class="admin-actions">
             <button onclick="addStar()" class="btn-primary">
                 <i class="fas fa-plus"></i> Agregar Visita
@@ -367,47 +365,20 @@ function showClientInfo() {
                 <i class="fab fa-whatsapp"></i> WhatsApp
             </button>
         </div>
+        
+        <h5 style="margin: 25px 0 15px; color: var(--dark-pink); font-family: 'Playfair Display', serif;">Historial</h5>
+        <ul class="history-list">
+            ${client.visits && client.visits.length > 0 ? 
+                [...client.visits].reverse().map(visit => `
+                    <li class="history-item">
+                        <span>${visit.type === 'reward' ? '🎁 Recompensa' : '⭐ Visita'}</span>
+                        <span class="history-date">${formatDate(visit.date)}</span>
+                    </li>
+                `).join('') : 
+                '<li class="history-item">Sin historial</li>'
+            }
+        </ul>
     `;
-    
-    // Insertar después del header
-    const existingProgress = header.nextElementSibling;
-    if (existingProgress && existingProgress.classList.contains('progress-bar-container')) {
-        existingProgress.remove();
-    }
-    
-    const tempDiv = document.createElement('div');
-    tempDiv.innerHTML = progressHTML;
-    while (tempDiv.firstChild) {
-        header.parentNode.insertBefore(tempDiv.firstChild, header.nextSibling);
-    }
-    
-    // Historial
-    const historyList = document.getElementById('adminClientHistory') || document.createElement('ul');
-    historyList.id = 'adminClientHistory';
-    historyList.className = 'history-list';
-    historyList.innerHTML = '<h5 style="margin: 20px 0 10px; color: var(--dark-pink);">Historial</h5>';
-    
-    if (client.visits && client.visits.length > 0) {
-        [...client.visits].reverse().forEach(visit => {
-            const li = document.createElement('li');
-            li.className = 'history-item';
-            li.innerHTML = `
-                <span>${visit.type === 'reward' ? '🎁 Recompensa' : '⭐ Visita'}</span>
-                <span class="history-date">${formatDate(visit.date)}</span>
-            `;
-            historyList.appendChild(li);
-        });
-    } else {
-        historyList.innerHTML += '<li class="history-item">Sin historial</li>';
-    }
-    
-    // Reemplazar o agregar historial
-    const existingHistory = document.getElementById('adminClientHistory');
-    if (existingHistory) {
-        existingHistory.replaceWith(historyList);
-    } else {
-        document.getElementById('clientInfo').appendChild(historyList);
-    }
 }
 
 function hideClientInfo() {
@@ -563,7 +534,7 @@ function notifyClient() {
 }
 
 // ==========================================
-// GESTIÓN DE CITAS (ADMIN)
+// GESTIÓN DE CITAS (ADMIN) - CORREGIDO
 // ==========================================
 
 async function loadAdminAppointments() {
@@ -591,25 +562,77 @@ async function loadAdminAppointments() {
             return;
         }
         
-        list.innerHTML = appointments.map(apt => `
-            <div class="appointment-card" style="background: white; padding: 20px; border-radius: 15px; margin-bottom: 15px; box-shadow: 0 2px 10px rgba(0,0,0,0.05);">
-                <div style="display: flex; justify-content: space-between; align-items: center;">
+        list.innerHTML = appointments.map(apt => {
+            const isCancelled = apt.status === 'cancelled';
+            
+            return `
+            <div class="appointment-card" style="background: white; padding: 20px; border-radius: 15px; margin-bottom: 15px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); ${isCancelled ? 'opacity: 0.6;' : ''}">
+                <div style="display: flex; justify-content: space-between; align-items: flex-start;">
                     <div>
-                        <h4 style="color: var(--dark-pink); margin-bottom: 8px;">${apt.serviceName}</h4>
+                        <h4 style="color: var(--dark-pink); margin-bottom: 8px; ${isCancelled ? 'text-decoration: line-through;' : ''}">
+                            ${apt.serviceName}
+                        </h4>
                         <p style="color: #666; margin: 4px 0;"><i class="fas fa-user"></i> ${apt.clientName}</p>
                         <p style="color: #666; margin: 4px 0;"><i class="fas fa-clock"></i> ${apt.time}</p>
                         <p style="color: #666; margin: 4px 0;"><i class="fas fa-phone"></i> ${apt.phone}</p>
+                        ${isCancelled ? '<p style="color: #e74c3c; font-size: 0.85rem; margin-top: 8px;"><i class="fas fa-ban"></i> Cancelada</p>' : ''}
                     </div>
-                    <span class="badge ${apt.status}" style="padding: 8px 15px; border-radius: 20px; font-size: 0.85rem; font-weight: 600; ${apt.status === 'confirmed' ? 'background: #e8f5e9; color: #2e7d32;' : 'background: #fff3e0; color: #ef6c00;'}">
-                        ${apt.status === 'confirmed' ? '✓ Confirmada' : '⏳ Pendiente'}
-                    </span>
+                    <div style="text-align: right;">
+                        <span class="badge ${apt.status}" style="display: inline-block; padding: 6px 12px; border-radius: 12px; font-size: 0.8rem; font-weight: 600; margin-bottom: 10px; ${apt.status === 'confirmed' ? 'background: #e8f5e9; color: #2e7d32;' : apt.status === 'cancelled' ? 'background: #ffebee; color: #c62828;' : 'background: #fff3e0; color: #ef6c00;'}">
+                            ${apt.status === 'confirmed' ? '✓ Confirmada' : apt.status === 'cancelled' ? '✕ Cancelada' : '⏳ Pendiente'}
+                        </span>
+                        <div style="display: flex; gap: 5px; flex-direction: column;">
+                            ${!isCancelled ? `
+                                <button onclick="cancelAdminAppointment('${apt.id}')" class="btn-cancel" style="padding: 6px 12px; font-size: 0.8rem;">
+                                    <i class="fas fa-times"></i> Cancelar
+                                </button>
+                            ` : ''}
+                            <button onclick="deleteAppointment('${apt.id}')" class="btn-cancel" style="padding: 6px 12px; font-size: 0.8rem; background: #ffebee; color: #c62828;">
+                                <i class="fas fa-trash"></i> Eliminar
+                            </button>
+                        </div>
+                    </div>
                 </div>
             </div>
-        `).join('');
+        `}).join('');
         
     } catch (error) {
         console.error('Error cargando citas:', error);
         list.innerHTML = '<p style="color: #e74c3c; text-align: center;">Error al cargar citas</p>';
+    }
+}
+
+// NUEVAS FUNCIONES: Cancelar y Eliminar citas desde admin
+async function cancelAdminAppointment(appointmentId) {
+    if (!confirm('¿Cancelar esta cita?')) return;
+    
+    try {
+        await db.collection('appointments').doc(appointmentId).update({
+            status: 'cancelled',
+            cancelledAt: new Date().toISOString(),
+            cancelledBy: 'admin'
+        });
+        
+        showNotification('Cita cancelada', 'success');
+        loadAdminAppointments();
+        
+    } catch (error) {
+        console.error('Error:', error);
+        showNotification('Error al cancelar', 'error');
+    }
+}
+
+async function deleteAppointment(appointmentId) {
+    if (!confirm('¿Eliminar permanentemente esta cita?')) return;
+    
+    try {
+        await db.collection('appointments').doc(appointmentId).delete();
+        showNotification('Cita eliminada', 'success');
+        loadAdminAppointments();
+        
+    } catch (error) {
+        console.error('Error:', error);
+        showNotification('Error al eliminar', 'error');
     }
 }
 
@@ -631,8 +654,10 @@ function showTab(tabName) {
     // Activar tab seleccionada
     document.getElementById(`tab-${tabName}`).classList.add('active');
     
-    // Activar botón
-    event.target.classList.add('active');
+    // Activar botón que disparó el evento
+    if (event && event.target) {
+        event.target.classList.add('active');
+    }
     
     // Cargar contenido específico
     if (tabName === 'dashboard') {
