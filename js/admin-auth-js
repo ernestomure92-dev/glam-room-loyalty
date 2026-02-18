@@ -1,0 +1,59 @@
+// Verificación de autenticación para panel admin
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+const firebaseConfig = {
+  // Mantén tu config actual aquí
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+// Verificar autenticación al cargar
+onAuthStateChanged(auth, async (user) => {
+  if (!user) {
+    // No está logueado, redirigir a login
+    window.location.href = 'index.html?redirect=admin';
+    return;
+  }
+
+  try {
+    // Verificar si es admin
+    const adminDoc = await getDoc(doc(db, 'admins', user.uid));
+    
+    if (!adminDoc.exists()) {
+      // No es admin, cerrar sesión y redirigir
+      await signOut(auth);
+      alert('No tienes permisos de administrador');
+      window.location.href = 'index.html';
+      return;
+    }
+
+    // Es admin, cargar datos del dashboard
+    console.log('Admin verificado:', user.email);
+    cargarDashboard();
+    
+  } catch (error) {
+    console.error('Error verificando admin:', error);
+    window.location.href = 'index.html';
+  }
+});
+
+// Función para cerrar sesión
+window.cerrarSesionAdmin = async () => {
+  try {
+    await signOut(auth);
+    window.location.href = 'index.html';
+  } catch (error) {
+    console.error('Error al cerrar sesión:', error);
+  }
+};
+
+function cargarDashboard() {
+  // Aquí va tu lógica actual de admin-dashboard.js
+  if (typeof initDashboard === 'function') {
+    initDashboard();
+  }
+}
