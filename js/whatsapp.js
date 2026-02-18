@@ -129,24 +129,17 @@ class WhatsAppService {
     // ==========================================
 
     openWhatsApp(phone, message) {
-        // Limpiar número
         let cleanPhone = phone.replace(/\D/g, '');
         
-        // Agregar código de país si no lo tiene
         if (!cleanPhone.startsWith('52')) {
             cleanPhone = '52' + cleanPhone;
         }
         
-        // Codificar mensaje
         const encodedMessage = encodeURIComponent(message);
-        
-        // Generar URL
         const url = `https://wa.me/${cleanPhone}?text=${encodedMessage}`;
         
-        // Abrir en nueva pestaña
         window.open(url, '_blank');
         
-        // Guardar log
         this.logMessage(phone, message);
         
         return url;
@@ -171,27 +164,9 @@ class WhatsAppService {
                 type: 'whatsapp_web'
             });
         } catch (e) {
-            // No crítico si falla
             console.log('Log no guardado:', e);
         }
     }
-
-    // ==========================================
-    // BOTONES RÁPIDOS PARA ADMIN
-    // ==========================================
-
-    // Botón flotante de WhatsApp en la página
-    createFloatButton(containerId = 'body') {
-        const button = document.createElement('a');
-        button.href = `https://wa.me/52${this.businessInfo.phone}`;
-        button.target = '_blank';
-        button.className = 'whatsapp-float';
-        button.innerHTML = '<i class="fab fa-whatsapp"></i>';
-        button.title = 'Contáctanos por WhatsApp';
-        
-        document.querySelector(containerId).appendChild(button);
-    }
 }
 
-// Instancia global
 const whatsAppService = new WhatsAppService();
