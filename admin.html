@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin - Glam Room</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>👑</text></svg>">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="css/admin.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Login Admin -->
+        <div id="adminLoginScreen" class="screen active">
+            <div class="logo-container">
+                <img src="assets/logo.png" alt="Glam Room" class="logo">
+            </div>
+            <div class="login-box">
+                <h2>👑 Panel Administrador</h2>
+                <input type="email" id="adminEmail" placeholder="Correo electrónico">
+                <input type="password" id="adminPassword" placeholder="Contraseña">
+                <button onclick="loginAdmin()" class="btn-primary">Ingresar</button>
+                <a href="index.html" class="admin-link">← Volver al inicio</a>
+            </div>
+        </div>
+
+        <!-- Dashboard Admin -->
+        <div id="adminDashboard" class="screen">
+            <div class="admin-header">
+                <div class="admin-title">
+                    <h2>Panel de Control</h2>
+                    <span id="adminUserEmail"></span>
+                </div>
+                <div class="admin-actions-header">
+                    <button onclick="showTab('dashboard')" class="btn-nav active" data-tab="dashboard">
+                        <i class="fas fa-chart-line"></i> Estadísticas
+                    </button>
+                    <button onclick="showTab('clients')" class="btn-nav" data-tab="clients">
+                        <i class="fas fa-users"></i> Clientes
+                    </button>
+                    <button onclick="showTab('appointments')" class="btn-nav" data-tab="appointments">
+                        <i class="fas fa-calendar"></i> Citas
+                    </button>
+                    <button onclick="logoutAdmin()" class="btn-logout">Salir</button>
+                </div>
+            </div>
+
+            <!-- Estadísticas -->
+            <div id="tab-dashboard" class="admin-tab active">
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <i class="fas fa-users"></i>
+                        <div>
+                            <h3 id="totalClients">0</h3>
+                            <p>Clientes</p>
+                        </div>
+                    </div>
+                    <div class="stat-card highlight">
+                        <i class="fas fa-star"></i>
+                        <div>
+                            <h3 id="totalVisits">0</h3>
+                            <p>Visitas este mes</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <i class="fas fa-gift"></i>
+                        <div>
+                            <h3 id="pendingRewards">0</h3>
+                            <p>Recompensas pendientes</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <i class="fas fa-crown"></i>
+                        <div>
+                            <h3 id="vipClients">0</h3>
+                            <p>VIPs</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="charts-container">
+                    <div class="chart-box">
+                        <h4>Visitas por semana</h4>
+                        <canvas id="visitsChart"></canvas>
+                    </div>
+                    <div class="chart-box">
+                        <h4>Distribución de niveles</h4>
+                        <canvas id="tiersChart"></canvas>
+                    </div>
+                </div>
+
+                <div class="recent-activity">
+                    <h4>Actividad reciente</h4>
+                    <ul id="recentActivityList"></ul>
+                </div>
+            </div>
+
+            <!-- Clientes -->
+            <div id="tab-clients" class="admin-tab">
+                <div class="search-section">
+                    <div class="search-box">
+                        <input type="tel" id="searchPhone" placeholder="Buscar por teléfono">
+                        <button onclick="searchClient()" class="btn-primary">
+                            <i class="fas fa-search"></i>
+                        </button>
+                    </div>
+                    <button onclick="showNewClientForm()" class="btn-success">
+                        <i class="fas fa-plus"></i> Nuevo
+                    </button>
+                </div>
+
+                <div id="clientInfo" class="client-detail-card hidden">
+                    <!-- Info del cliente -->
+                </div>
+
+                <div id="newClientForm" class="form-card hidden">
+                    <h4>Nuevo Cliente</h4>
+                    <input type="text" id="newClientName" placeholder="Nombre">
+                    <input type="tel" id="newClientPhone" placeholder="Teléfono (10 dígitos)" maxlength="10">
+                    <div class="form-actions">
+                        <button onclick="createClient()" class="btn-primary">Crear</button>
+                        <button onclick="hideNewClientForm()" class="btn-secondary">Cancelar</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Citas -->
+            <div id="tab-appointments" class="admin-tab">
+                <div class="appointments-admin-header">
+                    <h3>Citas del día</h3>
+                    <input type="date" id="adminDateFilter" onchange="loadAdminAppointments()">
+                </div>
+                <div id="adminAppointmentsList" class="admin-appointments-list"></div>
+            </div>
+        </div>
+    </div>
+
+    <div id="notification" class="notification"></div>
+
+    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-auth-compat.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="js/firebase-config.js"></script>
+    <script src="js/utils.js"></script>
+    <script src="js/admin.js"></script>
+</body>
+</html>
