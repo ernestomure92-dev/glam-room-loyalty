@@ -1,4 +1,7 @@
-// Estado de autenticación
+// ==========================================
+// AUTENTICACIÓN ADMINISTRADOR
+// ==========================================
+
 let currentAdmin = null;
 
 // Verificar estado de auth al cargar
@@ -57,9 +60,11 @@ function logoutAdmin() {
 function createInitialAdmin(email, password) {
     auth.createUserWithEmailAndPassword(email, password)
         .then((userCredential) => {
-            console.log('Admin creado:', userCredential.user.email);
+            console.log('✅ Admin creado:', userCredential.user.email);
+            alert('Admin creado exitosamente');
         })
         .catch((error) => {
             console.error('Error:', error);
+            alert('Error: ' + error.message);
         });
 }
