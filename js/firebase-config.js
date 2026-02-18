@@ -52,13 +52,3 @@ const TIERS = {
         reward: 'Día de spa completo' 
     }
 };
-
-// ==========================================
-// CONFIGURACIÓN WHATSAPP (OPCIONAL)
-// ==========================================
-
-const WHATSAPP_CONFIG = {
-    phoneNumberId: '',
-    accessToken: '',
-    businessAccountId: ''
-};
