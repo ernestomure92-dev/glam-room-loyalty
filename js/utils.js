@@ -2,16 +2,14 @@
 // UTILIDADES COMPARTIDAS
 // ==========================================
 
-// Variables globales
 let currentClient = null;
 
-// Verificar sesión al cargar
-function checkSession() {
+async function checkSession() {
     const savedPhone = sessionStorage.getItem('glamRoomClient');
     if (savedPhone) {
         return loadClient(savedPhone);
     }
-    return Promise.resolve(false);
+    return false;
 }
 
 async function loadClient(phone) {
@@ -37,7 +35,6 @@ function clearSession() {
     currentClient = null;
 }
 
-// Notificaciones
 function showNotification(message, type = 'success') {
     const notif = document.getElementById('notification');
     if (!notif) return;
@@ -51,7 +48,6 @@ function showNotification(message, type = 'success') {
     }, 3000);
 }
 
-// Formatear fecha
 function formatDate(isoString) {
     const date = new Date(isoString);
     return date.toLocaleDateString('es-MX', {
@@ -62,12 +58,6 @@ function formatDate(isoString) {
     });
 }
 
-// Navegación suave
-function navigateTo(url) {
-    window.location.href = url;
-}
-
-// Utilidades de fecha
 const DateUtils = {
     toISOString(date) {
         const year = date.getFullYear();
