@@ -608,4 +608,70 @@ async function loadAdminAppointments() {
         `).join('');
         
     } catch (error) {
-        console.error('Error cargando citas:', error
+        console.error('Error cargando citas:', error);
+        list.innerHTML = '<p style="color: #e74c3c; text-align: center;">Error al cargar citas</p>';
+    }
+}
+
+// ==========================================
+// NAVEGACIÓN DE TABS
+// ==========================================
+
+function showTab(tabName) {
+    // Ocultar todas las tabs
+    document.querySelectorAll('.admin-tab').forEach(tab => {
+        tab.classList.remove('active');
+    });
+    
+    // Desactivar todos los botones
+    document.querySelectorAll('.btn-nav').forEach(btn => {
+        btn.classList.remove('active');
+    });
+    
+    // Activar tab seleccionada
+    document.getElementById(`tab-${tabName}`).classList.add('active');
+    
+    // Activar botón
+    event.target.classList.add('active');
+    
+    // Cargar contenido específico
+    if (tabName === 'dashboard') {
+        loadDashboard();
+    } else if (tabName === 'appointments') {
+        loadAdminAppointments();
+    }
+}
+
+// ==========================================
+// UTILIDADES
+// ==========================================
+
+function formatDate(isoString) {
+    const date = new Date(isoString);
+    return date.toLocaleDateString('es-MX', {
+        day: '2-digit',
+        month: 'short',
+        hour: '2-digit',
+        minute: '2-digit'
+    });
+}
+
+function showNotification(message, type = 'success') {
+    const notif = document.getElementById('notification');
+    if (!notif) return;
+    
+    notif.textContent = message;
+    notif.className = 'notification ' + type;
+    notif.classList.add('show');
+    
+    setTimeout(() => {
+        notif.classList.remove('show');
+    }, 3000);
+}
+
+// Crear admin inicial (ejecutar en consola una vez)
+function createAdmin(email, password) {
+    firebase.auth().createUserWithEmailAndPassword(email, password)
+        .then(() => alert('Admin creado'))
+        .catch(e => alert('Error: ' + e.message));
+}
