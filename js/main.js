@@ -9,7 +9,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         loadClientCard();
     }
     
-    // Event listeners
     document.getElementById('phoneInput')?.addEventListener('keypress', (e) => {
         if (e.key === 'Enter') login();
     });
@@ -60,7 +59,6 @@ function loadClientCard() {
     badge.textContent = `Nivel: ${tier.name} ${tier.name === 'Diamante' ? '💎' : '✨'}`;
     badge.className = `tier-badge ${tier.name.toLowerCase()}`;
     
-    // Estrellas
     const container = document.getElementById('starsContainer');
     container.innerHTML = '';
     
@@ -74,7 +72,6 @@ function loadClientCard() {
     document.getElementById('currentStars').textContent = currentStars;
     document.getElementById('maxStars').textContent = maxStars;
     
-    // Recompensa
     const nextReward = document.getElementById('nextReward');
     if (currentStars < 10) {
         nextReward.innerHTML = `Próxima recompensa: <span>${tier.reward}</span>`;
@@ -83,7 +80,6 @@ function loadClientCard() {
         nextReward.style.display = 'none';
     }
     
-    // Estado recompensa
     const rewardStatus = document.getElementById('rewardStatus');
     if (currentStars >= 10) {
         rewardStatus.classList.add('show');
@@ -91,7 +87,6 @@ function loadClientCard() {
         rewardStatus.classList.remove('show');
     }
     
-    // Niveles
     document.querySelectorAll('.level-item').forEach(el => {
         el.classList.remove('active');
         if (el.dataset.tier === tier.name.toLowerCase()) {
