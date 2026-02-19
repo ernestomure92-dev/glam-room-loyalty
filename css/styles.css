@@ -516,3 +516,231 @@ footer a {
     grid-template-columns: repeat(3, 1fr);
   }
 }
+/* ============================================
+   ESTILOS PARA ADMIN
+   ============================================ */
+
+.admin-tabs {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+  overflow-x: auto;
+}
+
+.tab-btn {
+  background: rgba(255,255,255,0.2);
+  color: white;
+  border: none;
+  padding: 12px 20px;
+  border-radius: 25px;
+  cursor: pointer;
+  white-space: nowrap;
+  flex: 1;
+}
+
+.tab-btn.active {
+  background: white;
+  color: #c44569;
+}
+
+.tab-content {
+  background: white;
+  border-radius: 20px;
+  padding: 25px;
+  min-height: 400px;
+}
+
+.filter-bar {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.filter-bar input {
+  flex: 1;
+}
+
+.admin-list {
+  max-height: 500px;
+  overflow-y: auto;
+}
+
+.admin-cita-card {
+  border: 1px solid #eee;
+  border-radius: 12px;
+  padding: 15px;
+  margin-bottom: 12px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.cita-hoy {
+  border-left: 4px solid #4CAF50;
+  background: #f1f8e9;
+}
+
+.cita-info {
+  flex: 1;
+  min-width: 150px;
+}
+
+.cita-info strong {
+  display: block;
+  color: #333;
+}
+
+.cita-tel {
+  font-size: 0.85rem;
+  color: #666;
+}
+
+.cita-servicio-fecha {
+  text-align: center;
+}
+
+.cita-servicio-fecha .servicio {
+  display: block;
+  font-weight: 600;
+  color: #c44569;
+}
+
+.cita-servicio-fecha .fecha {
+  font-size: 0.85rem;
+  color: #666;
+}
+
+.cita-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.estado-badge {
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+}
+
+.estado-badge.confirmada {
+  background: #e3f2fd;
+  color: #1976d2;
+}
+
+.estado-badge.completada {
+  background: #e8f5e9;
+  color: #388e3c;
+}
+
+.estado-badge.cancelada {
+  background: #ffebee;
+  color: #c62828;
+}
+
+.search-bar {
+  margin-bottom: 20px;
+}
+
+.search-bar input {
+  width: 100%;
+}
+
+.cliente-card {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px;
+  border-bottom: 1px solid #eee;
+}
+
+.cliente-card:last-child {
+  border-bottom: none;
+}
+
+.cliente-stats {
+  display: flex;
+  gap: 15px;
+  align-items: center;
+}
+
+.stat {
+  color: #666;
+  font-size: 0.9rem;
+}
+
+.nivel-badge {
+  padding: 4px 12px;
+  border-radius: 15px;
+  font-size: 0.8rem;
+  font-weight: bold;
+  text-transform: uppercase;
+}
+
+.nivel-badge.bronce {
+  background: #cd7f32;
+  color: white;
+}
+
+.nivel-badge.plata {
+  background: #c0c0c0;
+  color: #333;
+}
+
+.nivel-badge.oro {
+  background: #ffd700;
+  color: #333;
+}
+
+.nivel-badge.diamante {
+  background: #b9f2ff;
+  color: #333;
+}
+
+.registro-box {
+  max-width: 400px;
+  margin: 0 auto;
+}
+
+.registro-box h3 {
+  text-align: center;
+  color: #c44569;
+  margin-bottom: 25px;
+}
+
+.cliente-info-card {
+  background: #f8f9fa;
+  padding: 20px;
+  border-radius: 15px;
+  margin-bottom: 20px;
+  text-align: center;
+}
+
+.cliente-info-card h4 {
+  color: #333;
+  margin-bottom: 10px;
+  font-size: 1.3rem;
+}
+
+.btn-success {
+  background: linear-gradient(135deg, #4CAF50, #45a049) !important;
+}
+
+.btn-cancel {
+  background: #ffebee !important;
+  color: #c62828 !important;
+}
+
+@media (max-width: 600px) {
+  .admin-cita-card {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  .cita-actions {
+    width: 100%;
+    justify-content: flex-end;
+  }
+}
