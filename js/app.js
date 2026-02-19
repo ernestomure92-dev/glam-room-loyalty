@@ -1,16 +1,10 @@
 // ============================================
-// GLAM ROOM - APP.JS COMPATIBLE
-// Funciona con estructura HTML existente
+// GLAM ROOM - APP.JS 
+// Compatible con estructura HTML existente
 // ============================================
 
-// Firebase ya debe estar cargado en el HTML globalmente
-// Asegúrate de tener en tu HTML:
-// <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-// <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
-// <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
-
 // ============================================
-// CONFIGURACIÓN FIREBASE (usa la misma que tienes)
+// CONFIGURACIÓN FIREBASE (AJUSTA CON TUS CREDENCIALES REALES)
 // ============================================
 const firebaseConfig = {
   apiKey: "AIzaSyDYZk3kQj5U7MTgO7kXb6n8kL8k5k5k5k5",
@@ -21,13 +15,17 @@ const firebaseConfig = {
   appId: "1:724288769963:web:02e78c225c0ba8c3a20cee"
 };
 
-// Inicializar solo si no está inicializado
-if (!firebase.apps.length) {
-  firebase.initializeApp(firebaseConfig);
+// Inicializar Firebase (solo si no está inicializado)
+if (typeof firebase !== 'undefined') {
+  if (!firebase.apps.length) {
+    firebase.initializeApp(firebaseConfig);
+  }
+} else {
+  console.error('Firebase no cargado. Verifica los scripts en HTML.');
 }
 
-const auth = firebase.auth();
-const db = firebase.firestore();
+const auth = firebase ? firebase.auth() : null;
+const db = firebase ? firebase.firestore() : null;
 
 // ============================================
 // VARIABLES GLOBALES
@@ -35,279 +33,224 @@ const db = firebase.firestore();
 let confirmationResult = null;
 let recaptchaVerifier = null;
 let currentUser = null;
-let tempNombre = null;
 
 // ============================================
-// SISTEMA DE NOTIFICACIONES TOAST
+// NOTIFICACIONES TOAST (NUEVO - No afecta diseño)
 // ============================================
-const NotificationSystem = {
-  container: null,
-  
-  init: function() {
-    if (!document.getElementById('toast-container')) {
-      this.container = document.createElement('div');
-      this.container.id = 'toast-container';
-      this.container.style.cssText = `
-        position: fixed;
-        top: 20px;
-        right: 20px;
-        z-index: 10000;
-        display: flex;
-        flex-direction: column;
-        gap: 10px;
-        max-width: 350px;
-        pointer-events: none;
-      `;
-      document.body.appendChild(this.container);
-      
-      // CSS para animaciones
+const Toast = {
+  show: function(message, type) {
+    type = type || 'info';
+    const colors = {
+      success: '#4CAF50',
+      error: '#f44336',
+      warning: '#ff9800',
+      info: '#2196F3'
+    };
+    
+    // Crear toast
+    const toast = document.createElement('div');
+    toast.style.cssText = `
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      background: white;
+      color: #333;
+      padding: 16px 20px;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      border-left: 4px solid ${colors[type]};
+      z-index: 10000;
+      font-family: inherit;
+      max-width: 300px;
+      animation: slideIn 0.3s ease;
+    `;
+    toast.innerHTML = `
+      <div style="font-weight: 600; margin-bottom: 4px;">${type === 'success' ? '✅ Éxito' : type === 'error' ? '❌ Error' : 'ℹ️ Info'}</div>
+      <div style="font-size: 14px; color: #666;">${message}</div>
+    `;
+    
+    // Agregar animación
+    if (!document.getElementById('toast-style')) {
       const style = document.createElement('style');
+      style.id = 'toast-style';
       style.textContent = `
         @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
         @keyframes slideOut { from { transform: translateX(0); opacity: 1; } to { transform: translateX(100%); opacity: 0; } }
-        .toast {
-          background: white;
-          color: #333;
-          padding: 16px 20px;
-          border-radius: 12px;
-          box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-          display: flex;
-          align-items: center;
-          gap: 12px;
-          min-width: 300px;
-          pointer-events: all;
-          animation: slideIn 0.3s ease;
-          font-family: inherit;
-        }
-        .toast-success { border-left: 4px solid #4CAF50; }
-        .toast-error { border-left: 4px solid #f44336; }
-        .toast-warning { border-left: 4px solid #ff9800; }
-        .toast-info { border-left: 4px solid #2196F3; }
       `;
       document.head.appendChild(style);
     }
-  },
-  
-  show: function(message, type, duration) {
-    type = type || 'info';
-    duration = duration || 4000;
     
-    const icons = { success: '✅', error: '❌', warning: '⚠️', info: 'ℹ️' };
-    const titles = { success: '¡Éxito!', error: 'Error', warning: 'Advertencia', info: 'Información' };
+    document.body.appendChild(toast);
     
-    const toast = document.createElement('div');
-    toast.className = 'toast toast-' + type;
-    toast.innerHTML = `
-      <span style="font-size: 20px;">${icons[type]}</span>
-      <div style="flex: 1;">
-        <div style="font-weight: 600; margin-bottom: 2px; color: #333;">${titles[type]}</div>
-        <div style="font-size: 14px; color: #666;">${message}</div>
-      </div>
-      <button onclick="this.parentElement.remove()" style="background: none; border: none; cursor: pointer; font-size: 20px; color: #999; padding: 0; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center;">×</button>
-    `;
-    
-    this.container.appendChild(toast);
-    
+    // Auto-remover
     setTimeout(function() {
-      toast.style.animation = 'slideOut 0.3s ease forwards';
+      toast.style.animation = 'slideOut 0.3s ease';
       setTimeout(function() { toast.remove(); }, 300);
-    }, duration);
-  },
-  
-  success: function(msg, duration) { this.show(msg, 'success', duration); },
-  error: function(msg, duration) { this.show(msg, 'error', duration); },
-  warning: function(msg, duration) { this.show(msg, 'warning', duration); },
-  info: function(msg, duration) { this.show(msg, 'info', duration); }
+    }, 4000);
+  }
 };
 
-// Inicializar notificaciones
-NotificationSystem.init();
-
-// Alias global para compatibilidad
-const notify = NotificationSystem;
-
 // ============================================
-// LOADER GLOBAL
+// LOADER SIMPLE
 // ============================================
-function mostrarLoader(mensaje) {
-  mensaje = mensaje || 'Cargando...';
-  let loader = document.getElementById('global-loader');
-  
-  if (!loader) {
-    loader = document.createElement('div');
-    loader.id = 'global-loader';
-    loader.innerHTML = `
-      <div style="text-align: center;">
-        <div style="width: 60px; height: 60px; border: 4px solid #ff6b9d; border-top-color: transparent; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto;"></div>
-        <p style="margin-top: 1rem; color: #c44569; font-weight: 500;">${mensaje}</p>
-      </div>
-    `;
-    loader.style.cssText = `
-      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-      background: rgba(255, 255, 255, 0.95); display: flex;
-      justify-content: center; align-items: center; z-index: 9999;
-    `;
-    
-    const style = document.createElement('style');
-    style.textContent = '@keyframes spin { to { transform: rotate(360deg); } }';
-    document.head.appendChild(style);
-    document.body.appendChild(loader);
-  } else {
-    loader.querySelector('p').textContent = mensaje;
-    loader.style.display = 'flex';
+const Loader = {
+  show: function(msg) {
+    let loader = document.getElementById('app-loader');
+    if (!loader) {
+      loader = document.createElement('div');
+      loader.id = 'app-loader';
+      loader.innerHTML = `
+        <div style="text-align: center;">
+          <div style="width: 50px; height: 50px; border: 3px solid #ff6b9d; border-top-color: transparent; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto;"></div>
+          <p style="margin-top: 1rem; color: #c44569;">${msg || 'Cargando...'}</p>
+        </div>
+      `;
+      loader.style.cssText = `
+        position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+        background: rgba(255,255,255,0.95); display: flex;
+        justify-content: center; align-items: center; z-index: 9999;
+      `;
+      document.body.appendChild(loader);
+      
+      const style = document.createElement('style');
+      style.textContent = '@keyframes spin { to { transform: rotate(360deg); } }';
+      document.head.appendChild(style);
+    } else {
+      loader.querySelector('p').textContent = msg || 'Cargando...';
+      loader.style.display = 'flex';
+    }
+  },
+  hide: function() {
+    const loader = document.getElementById('app-loader');
+    if (loader) loader.style.display = 'none';
   }
-}
-
-function ocultarLoader() {
-  const loader = document.getElementById('global-loader');
-  if (loader) loader.style.display = 'none';
-}
+};
 
 // ============================================
 // VALIDACIONES
 // ============================================
-function validarTelefonoMexico(telefono) {
-  if (!telefono || typeof telefono !== 'string') {
-    return { valido: false, error: 'Ingresa un número de teléfono' };
-  }
-
-  const numeros = telefono.replace(/\D/g, '');
+function validarTelefono(telefono) {
+  if (!telefono) return { ok: false, error: 'Ingresa un número' };
   
-  if (numeros.length === 0) return { valido: false, error: 'Ingresa un número de teléfono' };
-  if (numeros.length < 10) return { valido: false, error: 'El número debe tener al menos 10 dígitos' };
-  if (numeros.length > 13) return { valido: false, error: 'El número es demasiado largo' };
-
-  const diezDigitos = numeros.slice(-10);
-  const primerDigito = parseInt(diezDigitos[0]);
+  const limpio = telefono.replace(/\D/g, '');
+  if (limpio.length < 10) return { ok: false, error: 'Mínimo 10 dígitos' };
+  if (limpio.length > 13) return { ok: false, error: 'Número muy largo' };
   
-  if (primerDigito < 1 || primerDigito > 9) {
-    return { valido: false, error: 'Número de teléfono no válido para México' };
-  }
-
-  const formateado = diezDigitos.slice(0, 2) + ' ' + diezDigitos.slice(2, 6) + ' ' + diezDigitos.slice(6);
-  const internacional = '+52' + diezDigitos;
-
-  return { valido: true, formateado: formateado, internacional: internacional, basico: diezDigitos };
+  const diez = limpio.slice(-10);
+  return { 
+    ok: true, 
+    internacional: '+52' + diez,
+    formateado: diez.slice(0,2) + ' ' + diez.slice(2,6) + ' ' + diez.slice(6)
+  };
 }
 
 function validarNombre(nombre) {
   if (!nombre || nombre.trim().length < 2) {
-    return { valido: false, error: 'Nombre muy corto (mínimo 2 caracteres)' };
+    return { ok: false, error: 'Nombre muy corto' };
   }
-  
-  const regex = /^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/;
-  if (!regex.test(nombre)) {
-    return { valido: false, error: 'El nombre solo puede contener letras' };
+  if (!/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/.test(nombre)) {
+    return { ok: false, error: 'Solo letras permitidas' };
   }
-  
-  return { valido: true, valor: nombre.trim() };
+  return { ok: true, valor: nombre.trim() };
 }
 
 // ============================================
-// MANEJO DE ERRORES
+// MANEJO DE ERRORES FIREBASE
 // ============================================
-function manejarErrorFirebase(error) {
-  console.error('Error Firebase:', error);
-  
-  const mensajes = {
-    'auth/invalid-phone-number': 'El número de teléfono no tiene un formato válido',
+function getErrorMessage(error) {
+  const errores = {
+    'auth/invalid-phone-number': 'Número no válido',
     'auth/too-many-requests': 'Demasiados intentos. Espera unos minutos',
-    'auth/invalid-verification-code': 'El código es incorrecto',
-    'auth/code-expired': 'El código expiró. Solicita uno nuevo',
-    'permission-denied': 'No tienes permisos para esta acción',
-    'not-found': 'El recurso no existe',
-    'network-request-failed': 'Error de conexión. Verifica tu internet'
+    'auth/invalid-verification-code': 'Código incorrecto',
+    'auth/code-expired': 'Código expirado',
+    'permission-denied': 'No tienes permisos',
+    'not-found': 'No se encontró el recurso',
+    'network-request-failed': 'Error de conexión'
   };
-
-  for (let code in mensajes) {
-    if (error.code && error.code.indexOf(code) !== -1) {
-      return mensajes[code];
-    }
+  
+  for (let code in errores) {
+    if (error.code && error.code.indexOf(code) !== -1) return errores[code];
   }
-  return error.message || 'Ocurrió un error. Intenta de nuevo.';
+  return error.message || 'Error desconocido';
 }
 
 // ============================================
-// CREAR O ACTUALIZAR USUARIO (CORRECCIÓN PRINCIPAL)
+// FUNCIÓN PRINCIPAL: CREAR/ACTUALIZAR USUARIO
 // ============================================
-async function crearOActualizarUsuario(userId, telefono, nombre) {
+async function guardarUsuario(userId, telefono, nombre) {
   try {
     const userRef = db.collection('users').doc(userId);
-    const userSnap = await userRef.get();
+    const doc = await userRef.get();
     
-    const datosUsuario = {
-      telefono: telefono,
-      ultimoAcceso: firebase.firestore.FieldValue.serverTimestamp(),
-      updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-    };
-
-    if (nombre) {
-      datosUsuario.nombre = nombre;
-    }
-
-    if (!userSnap.exists) {
-      // NUEVO USUARIO - Crear documento completo
-      datosUsuario.creado = firebase.firestore.FieldValue.serverTimestamp();
-      datosUsuario.visitas = 0;
-      datosUsuario.nivel = 'bronce';
-      datosUsuario.recompensaDisponible = false;
-      datosUsuario.historialVisitas = [];
-      
-      await userRef.set(datosUsuario);
-      console.log('Nuevo usuario creado:', userId);
-      return { esNuevo: true, datos: datosUsuario };
+    const ahora = firebase.firestore.FieldValue.serverTimestamp();
+    
+    if (!doc.exists) {
+      // CREAR NUEVO USUARIO
+      await userRef.set({
+        telefono: telefono,
+        nombre: nombre || 'Cliente',
+        visitas: 0,
+        nivel: 'bronce',
+        recompensaDisponible: false,
+        creado: ahora,
+        ultimoAcceso: ahora
+      });
+      console.log('✅ Usuario creado:', userId);
+      return { nuevo: true };
     } else {
-      // USUARIO EXISTENTE - Solo actualizar último acceso
-      const datosExistentes = userSnap.data();
+      // ACTUALIZAR EXISTENTE
       await userRef.update({
-        ultimoAcceso: firebase.firestore.FieldValue.serverTimestamp(),
+        ultimoAcceso: ahora,
         telefono: telefono
       });
-      return { esNuevo: false, datos: datosExistentes };
+      console.log('✅ Usuario actualizado:', userId);
+      return { nuevo: false, datos: doc.data() };
     }
   } catch (error) {
-    console.error('Error al crear/actualizar usuario:', error);
+    console.error('❌ Error guardando usuario:', error);
     throw error;
   }
 }
 
 // ============================================
-// VERIFICAR SI TELÉFONO YA EXISTE
+// VERIFICAR SI TELÉFONO EXISTE (PARA MOSTRAR NOMBRE)
 // ============================================
-async function verificarTelefonoExistente() {
-  const telefonoInput = document.getElementById('telefono');
-  const telefono = telefonoInput ? telefonoInput.value.trim() : '';
+async function checkTelefono() {
+  const input = document.getElementById('telefono');
+  const tel = input ? input.value.trim() : '';
   
-  if (!telefono) return;
-  
-  const validacion = validarTelefonoMexico(telefono);
-  if (!validacion.valido) return;
+  const val = validarTelefono(tel);
+  if (!val.ok) return;
   
   try {
-    // Buscar por teléfono
-    const usersRef = db.collection('users');
-    const snapshot = await usersRef.where('telefono', '==', validacion.internacional).get();
+    const snap = await db.collection('users')
+      .where('telefono', '==', val.internacional)
+      .get();
     
-    const nombreContainer = document.getElementById('nombre-container');
+    const nombreDiv = document.getElementById('nombre-container');
     const nombreInput = document.getElementById('nombre');
     
-    if (snapshot.empty) {
-      // ES NUEVO - Mostrar campo de nombre
-      if (nombreContainer) {
-        nombreContainer.style.display = 'block';
-        nombreContainer.classList.remove('hidden');
+    if (snap.empty) {
+      // NUEVO USUARIO - Mostrar campo nombre
+      if (nombreDiv) {
+        nombreDiv.style.display = 'block';
+        nombreDiv.classList.remove('hidden');
       }
-      if (nombreInput) nombreInput.focus();
-      notify.info('¡Hola! Parece que eres nueva. Por favor ingresa tu nombre');
+      if (nombreInput) {
+        nombreInput.required = true;
+        setTimeout(() => nombreInput.focus(), 100);
+      }
+      Toast.show('¡Hola! Ingresa tu nombre para registrarte', 'info');
     } else {
-      // YA EXISTE - Ocultar nombre
-      if (nombreContainer) {
-        nombreContainer.style.display = 'none';
-        nombreContainer.classList.add('hidden');
+      // USUARIO EXISTENTE - Ocultar nombre
+      if (nombreDiv) {
+        nombreDiv.style.display = 'none';
+        nombreDiv.classList.add('hidden');
       }
+      if (nombreInput) nombreInput.required = false;
     }
-  } catch (error) {
-    console.error('Error verificando teléfono:', error);
+  } catch (e) {
+    console.log('Error verificando teléfono:', e);
   }
 }
 
@@ -315,208 +258,197 @@ async function verificarTelefonoExistente() {
 // ENVIAR CÓDIGO SMS
 // ============================================
 async function enviarCodigo() {
-  const telefonoInput = document.getElementById('telefono');
-  const nombreInput = document.getElementById('nombre');
+  const telInput = document.getElementById('telefono');
+  const nomInput = document.getElementById('nombre');
   
-  if (!telefonoInput) {
-    notify.error('Error: No se encontró el campo de teléfono');
+  if (!telInput) {
+    Toast.show('Error: Campo teléfono no encontrado', 'error');
     return;
   }
-  
-  const telefono = telefonoInput.value.trim();
   
   // Validar teléfono
-  const validacion = validarTelefonoMexico(telefono);
-  if (!validacion.valido) {
-    notify.error(validacion.error);
-    telefonoInput.focus();
+  const val = validarTelefono(telInput.value);
+  if (!val.ok) {
+    Toast.show(val.error, 'error');
+    telInput.focus();
     return;
   }
   
-  // Validar nombre si está visible
-  const nombreContainer = document.getElementById('nombre-container');
-  let nombreValidado = null;
-  
-  if (nombreContainer && nombreContainer.style.display !== 'none' && !nombreContainer.classList.contains('hidden')) {
-    const nombre = nombreInput ? nombreInput.value.trim() : '';
-    const valNombre = validarNombre(nombre);
-    if (!valNombre.valido) {
-      notify.error(valNombre.error);
-      if (nombreInput) nombreInput.focus();
+  // Validar nombre si es visible
+  const nomDiv = document.getElementById('nombre-container');
+  let nombre = null;
+  if (nomDiv && nomDiv.style.display !== 'none' && !nomDiv.classList.contains('hidden')) {
+    const valNom = validarNombre(nomInput ? nomInput.value : '');
+    if (!valNom.ok) {
+      Toast.show(valNom.error, 'error');
+      if (nomInput) nomInput.focus();
       return;
     }
-    nombreValidado = valNombre.valor;
-    tempNombre = nombreValidado; // Guardar temporalmente
+    nombre = valNom.valor;
+    // Guardar temporalmente
+    window.tempNombreRegistro = nombre;
   }
-
-  mostrarLoader('Enviando código SMS...');
+  
+  Loader.show('Enviando código...');
   
   try {
-    // Inicializar Recaptcha
+    // Inicializar recaptcha
     if (!recaptchaVerifier) {
       recaptchaVerifier = new firebase.auth.RecaptchaVerifier('recaptcha-container', {
-        'size': 'invisible'
+        size: 'invisible'
       });
     }
     
-    confirmationResult = await auth.signInWithPhoneNumber(validacion.internacional, recaptchaVerifier);
+    confirmationResult = await auth.signInWithPhoneNumber(val.internacional, recaptchaVerifier);
     
-    // Mostrar sección de código
-    const loginSection = document.getElementById('login-section');
-    const codigoSection = document.getElementById('codigo-section');
-    const telefonoMostrar = document.getElementById('telefono-mostrar');
+    // Cambiar vistas
+    const loginSec = document.getElementById('login-section');
+    const codigoSec = document.getElementById('codigo-section');
+    const telMostrar = document.getElementById('telefono-mostrar');
     
-    if (loginSection) loginSection.style.display = 'none';
-    if (codigoSection) {
-      codigoSection.style.display = 'block';
-      codigoSection.classList.remove('hidden');
+    if (loginSec) loginSec.style.display = 'none';
+    if (codigoSec) {
+      codigoSec.style.display = 'block';
+      codigoSec.classList.remove('hidden');
     }
-    if (telefonoMostrar) telefonoMostrar.textContent = validacion.formateado;
+    if (telMostrar) telMostrar.textContent = val.formateado;
     
-    notify.success('Código enviado a ' + validacion.formateado);
+    Toast.show('Código enviado a ' + val.formateado, 'success');
     
-    // Enfocar input de código
-    setTimeout(function() {
-      const codigoInput = document.getElementById('codigo');
-      if (codigoInput) codigoInput.focus();
+    // Focus en código
+    setTimeout(() => {
+      const codInput = document.getElementById('codigo');
+      if (codInput) codInput.focus();
     }, 100);
     
   } catch (error) {
-    const mensaje = manejarErrorFirebase(error);
-    notify.error(mensaje);
+    Toast.show(getErrorMessage(error), 'error');
     recaptchaVerifier = null;
   } finally {
-    ocultarLoader();
+    Loader.hide();
   }
 }
 
 // ============================================
-// VERIFICAR CÓDIGO SMS
+// VERIFICAR CÓDIGO Y LOGIN
 // ============================================
 async function verificarCodigo() {
-  const codigoInput = document.getElementById('codigo');
-  const codigo = codigoInput ? codigoInput.value.trim() : '';
+  const codInput = document.getElementById('codigo');
+  const codigo = codInput ? codInput.value.trim() : '';
   
-  if (!codigo || codigo.length !== 6) {
-    notify.error('Ingresa el código de 6 dígitos');
+  if (codigo.length !== 6) {
+    Toast.show('Ingresa los 6 dígitos del código', 'error');
     return;
   }
-
-  mostrarLoader('Verificando código...');
+  
+  Loader.show('Verificando...');
   
   try {
     const result = await confirmationResult.confirm(codigo);
     const user = result.user;
     
-    // Recuperar nombre temporal si existe
-    const nombre = tempNombre;
+    // Recuperar nombre temporal
+    const nombre = window.tempNombreRegistro || null;
+    delete window.tempNombreRegistro;
     
-    // Crear o actualizar usuario en Firestore
-    const resultado = await crearOActualizarUsuario(user.uid, user.phoneNumber, nombre);
+    // Guardar en Firestore
+    const resultado = await guardarUsuario(user.uid, user.phoneNumber, nombre);
     
-    if (resultado.esNuevo) {
-      notify.success('¡Bienvenida a Glam Room! Tu cuenta ha sido creada');
+    if (resultado.nuevo) {
+      Toast.show('¡Bienvenida a Glam Room! 🎉', 'success');
     } else {
-      notify.success('¡Bienvenida de vuelta!');
+      Toast.show('¡Bienvenida de vuelta! 💕', 'success');
     }
     
-    // Limpiar temporal
-    tempNombre = null;
-    
-    // Cargar dashboard
+    // Mostrar dashboard
     await mostrarDashboard(user.uid);
     
   } catch (error) {
-    const mensaje = manejarErrorFirebase(error);
-    notify.error(mensaje);
-    if (codigoInput) {
-      codigoInput.value = '';
-      codigoInput.focus();
+    Toast.show(getErrorMessage(error), 'error');
+    if (codInput) {
+      codInput.value = '';
+      codInput.focus();
     }
   } finally {
-    ocultarLoader();
+    Loader.hide();
   }
 }
 
 // ============================================
-// MOSTRAR DASHBOARD
+// MOSTRAR DASHBOARD DEL USUARIO
 // ============================================
 async function mostrarDashboard(userId) {
-  mostrarLoader('Cargando tu tarjeta...');
+  Loader.show('Cargando tu tarjeta...');
   
   try {
-    const userRef = db.collection('users').doc(userId);
-    const userSnap = await userRef.get();
+    const doc = await db.collection('users').doc(userId).get();
     
-    if (!userSnap.exists) {
-      notify.error('Error al cargar datos de usuario');
+    if (!doc.exists) {
+      Toast.show('Error cargando datos', 'error');
       return;
     }
     
-    const datos = userSnap.data();
+    const datos = doc.data();
     currentUser = { id: userId, ...datos };
     
     // Ocultar login, mostrar dashboard
-    const loginContainer = document.getElementById('login-container');
+    const loginCont = document.getElementById('login-container');
     const dashboard = document.getElementById('dashboard');
     
-    if (loginContainer) loginContainer.style.display = 'none';
+    if (loginCont) loginCont.style.display = 'none';
     if (dashboard) {
       dashboard.style.display = 'block';
       dashboard.classList.remove('hidden');
     }
     
-    // Actualizar UI
-    actualizarTarjetaLealtad(datos);
-    await cargarHistorial(userId);
+    // Actualizar UI con datos
+    actualizarUI(datos);
     
   } catch (error) {
-    notify.error('Error al cargar tu información');
+    Toast.show('Error al cargar información', 'error');
     console.error(error);
   } finally {
-    ocultarLoader();
+    Loader.hide();
   }
 }
 
 // ============================================
-// ACTUALIZAR UI DE TARJETA
+// ACTUALIZAR INTERFAZ CON DATOS DEL USUARIO
 // ============================================
-function actualizarTarjetaLealtad(datos) {
+function actualizarUI(datos) {
   // Nombre
-  const nombreEl = document.getElementById('user-name');
-  if (nombreEl) {
-    nombreEl.textContent = datos.nombre || 'Cliente Glam';
-  }
+  const nameEl = document.getElementById('user-name');
+  if (nameEl) nameEl.textContent = datos.nombre || 'Cliente Glam';
   
   // Nivel
-  const nivelEl = document.getElementById('user-level');
-  if (nivelEl) {
+  const levelEl = document.getElementById('user-level');
+  if (levelEl) {
     const nivel = (datos.nivel || 'bronce').toUpperCase();
-    nivelEl.textContent = '✨ ' + nivel;
-    nivelEl.className = 'user-level level-' + (datos.nivel || 'bronce');
+    levelEl.textContent = '✨ ' + nivel;
+    // Actualizar clase CSS según nivel
+    levelEl.className = 'user-level level-' + (datos.nivel || 'bronce');
   }
   
-  // Visitas
-  const visitasEl = document.getElementById('visit-count');
-  if (visitasEl) {
-    visitasEl.textContent = (datos.visitas || 0) + ' / 10 visitas';
+  // Contador de visitas
+  const visitEl = document.getElementById('visit-count');
+  if (visitEl) {
+    visitEl.textContent = (datos.visitas || 0) + ' / 10 visitas';
   }
   
   // Estrellas
-  const starsContainer = document.getElementById('stars-container');
-  if (starsContainer) {
-    starsContainer.innerHTML = '';
+  const starsCont = document.getElementById('stars-container');
+  if (starsCont) {
+    starsCont.innerHTML = '';
     const visitas = datos.visitas || 0;
-    
     for (let i = 1; i <= 10; i++) {
       const star = document.createElement('span');
       star.className = 'star ' + (i <= visitas ? 'active' : '');
       star.innerHTML = '⭐';
-      starsContainer.appendChild(star);
+      starsCont.appendChild(star);
     }
   }
   
-  // Recompensa
+  // Banner de recompensa
   const recompensaEl = document.getElementById('recompensa-banner');
   if (recompensaEl) {
     if (datos.recompensaDisponible) {
@@ -530,77 +462,27 @@ function actualizarTarjetaLealtad(datos) {
 }
 
 // ============================================
-// CARGAR HISTORIAL
-// ============================================
-async function cargarHistorial(userId) {
-  try {
-    const historialRef = db.collection('users').doc(userId).collection('historial');
-    const snapshot = await historialRef.orderBy('fecha', 'desc').limit(10).get();
-    
-    const lista = document.getElementById('historial-list');
-    if (!lista) return;
-    
-    lista.innerHTML = '';
-    
-    if (snapshot.empty) {
-      lista.innerHTML = '<p class="empty-state">Aún no tienes visitas registradas</p>';
-      return;
-    }
-    
-    snapshot.forEach(function(doc) {
-      const data = doc.data();
-      const fecha = data.fecha ? data.fecha.toDate().toLocaleDateString('es-MX') : '-';
-      
-      const item = document.createElement('div');
-      item.className = 'historial-item';
-      item.innerHTML = `
-        <div class="historial-fecha">${fecha}</div>
-        <div class="historial-servicio">${data.servicio || 'Visita'}</div>
-        <div class="historial-puntos">+1 ⭐</div>
-      `;
-      lista.appendChild(item);
-    });
-    
-  } catch (error) {
-    console.error('Error cargando historial:', error);
-  }
-}
-
-// ============================================
 // CANJEAR RECOMPENSA
 // ============================================
 async function canjearRecompensa() {
   if (!currentUser) return;
+  if (!confirm('¿Canjear tu recompensa ahora?')) return;
   
-  if (!confirm('¿Deseas canjear tu recompensa ahora?')) return;
-  
-  mostrarLoader('Procesando canje...');
+  Loader.show('Procesando...');
   
   try {
-    const userRef = db.collection('users').doc(currentUser.id);
-    
-    await userRef.update({
+    await db.collection('users').doc(currentUser.id).update({
       recompensaDisponible: false,
-      ultimoCanje: firebase.firestore.FieldValue.serverTimestamp(),
-      updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+      ultimoCanje: firebase.firestore.FieldValue.serverTimestamp()
     });
     
-    // Registrar en historial
-    await userRef.collection('historial').add({
-      tipo: 'canje',
-      fecha: firebase.firestore.FieldValue.serverTimestamp(),
-      descripcion: 'Recompensa canjeada',
-      premio: 'Servicio gratuito'
-    });
-    
-    notify.success('¡Recompensa canjeada exitosamente!');
+    Toast.show('¡Recompensa canjeada! 🎉', 'success');
     await mostrarDashboard(currentUser.id);
     
   } catch (error) {
-    notify.error('Error al canjear recompensa');
-    console.error(error);
+    Toast.show('Error al canjear', 'error');
   } finally {
-    ocultarLoader();
+    Loader.hide();
   }
 }
 
@@ -612,85 +494,79 @@ async function cerrarSesion() {
     await auth.signOut();
     currentUser = null;
     
+    // Resetear UI
     const dashboard = document.getElementById('dashboard');
-    const loginContainer = document.getElementById('login-container');
-    const loginSection = document.getElementById('login-section');
-    const codigoSection = document.getElementById('codigo-section');
+    const loginCont = document.getElementById('login-container');
+    const loginSec = document.getElementById('login-section');
+    const codigoSec = document.getElementById('codigo-section');
     
     if (dashboard) dashboard.style.display = 'none';
-    if (loginContainer) loginContainer.style.display = 'block';
-    if (loginSection) {
-      loginSection.style.display = 'block';
-      loginSection.classList.remove('hidden');
+    if (loginCont) loginCont.style.display = 'block';
+    if (loginSec) {
+      loginSec.style.display = 'block';
+      loginSec.classList.remove('hidden');
     }
-    if (codigoSection) {
-      codigoSection.style.display = 'none';
-      codigoSection.classList.add('hidden');
+    if (codigoSec) {
+      codigoSec.style.display = 'none';
+      codigoSec.classList.add('hidden');
     }
     
     // Limpiar inputs
-    const telefonoInput = document.getElementById('telefono');
-    const codigoInput = document.getElementById('codigo');
-    const nombreInput = document.getElementById('nombre');
+    const tel = document.getElementById('telefono');
+    const cod = document.getElementById('codigo');
+    const nom = document.getElementById('nombre');
     
-    if (telefonoInput) telefonoInput.value = '';
-    if (codigoInput) codigoInput.value = '';
-    if (nombreInput) nombreInput.value = '';
+    if (tel) tel.value = '';
+    if (cod) cod.value = '';
+    if (nom) nom.value = '';
     
     // Ocultar nombre
-    const nombreContainer = document.getElementById('nombre-container');
-    if (nombreContainer) {
-      nombreContainer.style.display = 'none';
-      nombreContainer.classList.add('hidden');
+    const nomDiv = document.getElementById('nombre-container');
+    if (nomDiv) {
+      nomDiv.style.display = 'none';
+      nomDiv.classList.add('hidden');
     }
     
-    notify.success('Sesión cerrada correctamente');
+    Toast.show('Sesión cerrada', 'success');
+    
   } catch (error) {
-    notify.error('Error al cerrar sesión');
+    Toast.show('Error al cerrar sesión', 'error');
   }
 }
 
 // ============================================
-// INICIALIZACIÓN
+// INICIALIZACIÓN AL CARGAR PÁGINA
 // ============================================
 document.addEventListener('DOMContentLoaded', function() {
-  console.log('Glam Room App Iniciada');
+  console.log('🌸 Glam Room App iniciada');
   
-  // Verificar sesión existente
-  auth.onAuthStateChanged(function(user) {
-    if (user) {
-      console.log('Usuario ya logueado:', user.uid);
-      mostrarDashboard(user.uid);
-    }
-  });
+  // Verificar si hay sesión activa
+  if (auth) {
+    auth.onAuthStateChanged(function(user) {
+      if (user) {
+        console.log('👤 Usuario logueado:', user.uid);
+        mostrarDashboard(user.uid);
+      }
+    });
+  }
   
-  // Event Listeners
+  // Asignar event listeners
   const btnEnviar = document.getElementById('btn-enviar-codigo');
   const btnVerificar = document.getElementById('btn-verificar');
   const btnLogout = document.getElementById('btn-logout');
-  const telefonoInput = document.getElementById('telefono');
-  const codigoInput = document.getElementById('codigo');
+  const inputTel = document.getElementById('telefono');
+  const inputCod = document.getElementById('codigo');
   
-  if (btnEnviar) {
-    btnEnviar.addEventListener('click', enviarCodigo);
-  }
+  if (btnEnviar) btnEnviar.addEventListener('click', enviarCodigo);
+  if (btnVerificar) btnVerificar.addEventListener('click', verificarCodigo);
+  if (btnLogout) btnLogout.addEventListener('click', cerrarSesion);
   
-  if (btnVerificar) {
-    btnVerificar.addEventListener('click', verificarCodigo);
-  }
-  
-  if (btnLogout) {
-    btnLogout.addEventListener('click', cerrarSesion);
-  }
-  
-  // Verificar teléfono al perder foco
-  if (telefonoInput) {
-    telefonoInput.addEventListener('blur', verificarTelefonoExistente);
-  }
+  // Verificar teléfono al salir del campo
+  if (inputTel) inputTel.addEventListener('blur', checkTelefono);
   
   // Auto-verificar código al completar 6 dígitos
-  if (codigoInput) {
-    codigoInput.addEventListener('input', function(e) {
+  if (inputCod) {
+    inputCod.addEventListener('input', function(e) {
       if (e.target.value.length === 6) {
         verificarCodigo();
       }
