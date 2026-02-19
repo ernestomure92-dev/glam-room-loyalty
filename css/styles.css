@@ -1,5 +1,331 @@
 /* ============================================
-   ESTILOS PARA CITAS
+   GLAM ROOM - STYLES RESTAURADOS
+   ============================================ */
+
+/* Reset */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background: linear-gradient(135deg, #ff6b9d 0%, #c44569 50%, #f8b500 100%);
+  min-height: 100vh;
+  color: #333;
+  line-height: 1.6;
+}
+
+/* Logo */
+.logo {
+  max-width: 200px;
+  height: auto;
+  display: block;
+  margin: 0 auto 20px;
+}
+
+.logo-small {
+  max-width: 120px;
+  height: auto;
+}
+
+/* Contenedores */
+.container {
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+/* Login Box */
+.login-box {
+  background: white;
+  border-radius: 20px;
+  padding: 40px 30px;
+  margin: 40px auto;
+  max-width: 400px;
+  box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+  text-align: center;
+}
+
+.login-box h2 {
+  color: #c44569;
+  margin-bottom: 10px;
+  font-size: 1.8rem;
+}
+
+.login-box p {
+  color: #666;
+  margin-bottom: 30px;
+}
+
+/* Inputs */
+.form-group {
+  margin-bottom: 20px;
+}
+
+input[type="text"],
+input[type="tel"],
+input[type="date"] {
+  width: 100%;
+  padding: 15px;
+  border: 2px solid #ddd;
+  border-radius: 10px;
+  font-size: 16px;
+  transition: border-color 0.3s;
+  font-family: inherit;
+}
+
+input:focus {
+  outline: none;
+  border-color: #ff6b9d;
+}
+
+/* Botones */
+button,
+.btn-primary,
+.btn-secondary {
+  display: inline-block;
+  background: linear-gradient(135deg, #ff6b9d, #c44569);
+  color: white;
+  border: none;
+  padding: 15px 30px;
+  border-radius: 25px;
+  font-size: 1rem;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  width: 100%;
+  text-decoration: none;
+  text-align: center;
+}
+
+button:hover,
+.btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 20px rgba(196, 69, 105, 0.4);
+}
+
+.btn-secondary {
+  background: white;
+  color: #c44569;
+  border: 2px solid #c44569;
+}
+
+.btn-small {
+  width: auto;
+  padding: 10px 20px;
+  font-size: 0.9rem;
+}
+
+/* Admin Link */
+.admin-link {
+  margin-top: 20px;
+  padding-top: 20px;
+  border-top: 1px solid #eee;
+}
+
+.admin-link a {
+  color: #c44569;
+  text-decoration: none;
+  font-size: 0.9rem;
+}
+
+/* Dashboard */
+#dashboard {
+  padding: 20px;
+}
+
+#dashboard header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  padding: 10px 0;
+}
+
+/* Tarjeta de Lealtad */
+.loyalty-card {
+  background: white;
+  border-radius: 20px;
+  padding: 30px;
+  margin-bottom: 20px;
+  box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+  text-align: center;
+}
+
+.loyalty-card h2 {
+  color: #c44569;
+  margin-bottom: 20px;
+  font-size: 1.5rem;
+}
+
+.user-name {
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: #333;
+  margin-bottom: 10px;
+}
+
+.user-level {
+  display: inline-block;
+  background: linear-gradient(135deg, #ffd700, #ffed4e);
+  color: #333;
+  padding: 8px 20px;
+  border-radius: 20px;
+  font-weight: bold;
+  font-size: 0.9rem;
+  margin-bottom: 15px;
+}
+
+.visit-count {
+  color: #666;
+  font-size: 1.1rem;
+  margin-bottom: 20px;
+}
+
+/* Estrellas */
+.stars-container {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin: 20px 0;
+  padding: 20px;
+  background: #f8f9fa;
+  border-radius: 15px;
+}
+
+.star {
+  font-size: 2rem;
+  opacity: 0.3;
+  transition: all 0.3s ease;
+}
+
+.star.active {
+  opacity: 1;
+  transform: scale(1.1);
+}
+
+/* Recompensa */
+.recompensa-banner {
+  background: linear-gradient(135deg, #4CAF50, #45a049);
+  color: white;
+  padding: 20px;
+  border-radius: 15px;
+  margin-top: 20px;
+}
+
+.recompensa-banner h3 {
+  margin-bottom: 10px;
+}
+
+.btn-success {
+  background: white;
+  color: #4CAF50;
+  margin-top: 15px;
+}
+
+/* Acciones */
+.actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 15px;
+  margin-bottom: 20px;
+}
+
+.action-btn {
+  background: white;
+  color: #c44569;
+  padding: 20px;
+  border-radius: 15px;
+  text-align: center;
+  text-decoration: none;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+  transition: all 0.3s;
+}
+
+.action-btn:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+}
+
+.action-btn .icon {
+  display: block;
+  font-size: 2rem;
+  margin-bottom: 10px;
+}
+
+/* Historial */
+.historial-section {
+  background: white;
+  padding: 20px;
+  border-radius: 15px;
+  margin-bottom: 20px;
+}
+
+.historial-section h3 {
+  color: #c44569;
+  margin-bottom: 15px;
+}
+
+.historial-item {
+  display: flex;
+  justify-content: space-between;
+  padding: 12px 0;
+  border-bottom: 1px solid #eee;
+}
+
+.historial-item:last-child {
+  border-bottom: none;
+}
+
+.empty-state {
+  text-align: center;
+  color: #999;
+  padding: 20px;
+}
+
+/* Footer */
+footer {
+  text-align: center;
+  padding: 20px;
+  color: white;
+}
+
+footer a {
+  color: white;
+  text-decoration: none;
+  font-weight: bold;
+}
+
+/* Utilidades */
+.hidden {
+  display: none !important;
+}
+
+/* Responsive */
+@media (max-width: 600px) {
+  .container {
+    padding: 15px;
+  }
+  
+  .login-box {
+    margin: 20px auto;
+    padding: 30px 20px;
+  }
+  
+  .actions {
+    grid-template-columns: 1fr;
+  }
+  
+  .star {
+    font-size: 1.5rem;
+  }
+}
+
+/* ============================================
+   ESTILOS PARA CITAS (Agregar al final)
    ============================================ */
 
 .page-header {
@@ -17,17 +343,12 @@
   font-weight: 500;
 }
 
-.back-link:hover {
-  text-decoration: underline;
-}
-
 .subtitle {
   color: rgba(255,255,255,0.9);
   text-align: center;
   margin-bottom: 30px;
 }
 
-/* Formulario de Citas */
 .appointment-form {
   background: white;
   border-radius: 20px;
@@ -53,10 +374,9 @@
   font-size: 1.2rem;
 }
 
-/* Grid de Servicios */
 .services-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  grid-template-columns: repeat(2, 1fr);
   gap: 15px;
 }
 
@@ -71,17 +391,11 @@
   transition: all 0.3s;
 }
 
-.service-card:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-}
-
 .service-card input {
   position: absolute;
   opacity: 0;
 }
 
-.service-card input:checked + .service-name,
 .service-card:has(input:checked) {
   border-color: #ff6b9d;
   background: #fff0f3;
@@ -100,20 +414,9 @@
   color: #666;
 }
 
-/* Input Fecha */
-input[type="date"] {
-  width: 100%;
-  padding: 15px;
-  border: 2px solid #ddd;
-  border-radius: 10px;
-  font-size: 16px;
-  font-family: inherit;
-}
-
-/* Horarios */
 .time-slots {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+  grid-template-columns: repeat(4, 1fr);
   gap: 10px;
 }
 
@@ -127,29 +430,12 @@ input[type="date"] {
   font-size: 0.95rem;
 }
 
-.time-slot:hover {
-  background: #fff0f3;
-}
-
 .time-slot.selected {
   background: #ff6b9d;
   color: white;
   border-color: #c44569;
 }
 
-.info-text {
-  color: #666;
-  text-align: center;
-  padding: 20px;
-}
-
-.error-text {
-  color: #f44336;
-  text-align: center;
-  padding: 20px;
-}
-
-/* Resumen */
 .summary-box {
   background: #f8f9fa;
   padding: 20px;
@@ -159,20 +445,12 @@ input[type="date"] {
 
 .summary-box p {
   margin-bottom: 10px;
-  color: #333;
 }
 
 .summary-box strong {
   color: #c44569;
 }
 
-.btn-large {
-  width: 100%;
-  padding: 18px;
-  font-size: 1.1rem;
-}
-
-/* Modal */
 .modal {
   position: fixed;
   top: 0;
@@ -195,22 +473,11 @@ input[type="date"] {
   width: 90%;
 }
 
-.modal-content h3 {
-  color: #4CAF50;
-  margin-bottom: 15px;
-  font-size: 1.5rem;
-}
-
 .modal-actions {
   display: flex;
   flex-direction: column;
   gap: 10px;
   margin-top: 25px;
-}
-
-/* Lista de Citas */
-.citas-list {
-  margin-bottom: 30px;
 }
 
 .cita-card {
@@ -221,90 +488,31 @@ input[type="date"] {
   box-shadow: 0 4px 15px rgba(0,0,0,0.1);
 }
 
-.cita-proxima {
-  border-left: 4px solid #4CAF50;
-}
-
-.cita-pasada {
-  border-left: 4px solid #999;
-  opacity: 0.7;
-}
-
 .cita-header {
   display: flex;
   justify-content: space-between;
-  align-items: center;
   margin-bottom: 10px;
 }
 
 .cita-servicio {
   font-weight: bold;
   color: #333;
-  font-size: 1.1rem;
 }
 
 .cita-estado {
   padding: 4px 12px;
   border-radius: 12px;
   font-size: 0.8rem;
-  text-transform: uppercase;
-}
-
-.cita-estado.confirmada {
   background: #e8f5e9;
   color: #2e7d32;
 }
 
-.cita-fecha {
-  color: #666;
-  margin-bottom: 5px;
-}
-
-.cita-duracion {
-  color: #999;
-  font-size: 0.9rem;
-  margin-bottom: 15px;
-}
-
-.btn-cancelar {
-  background: #ffebee;
-  color: #c62828;
-  border: 1px solid #ef9a9a;
-  padding: 8px 16px;
-  font-size: 0.9rem;
-  width: auto;
-}
-
-.btn-cancelar:hover {
-  background: #ef9a9a;
-}
-
-.loading-text {
-  text-align: center;
-  color: white;
-  padding: 40px;
-}
-
-.empty-state {
-  text-align: center;
-  padding: 40px;
-  color: #666;
-}
-
-.empty-state .btn-primary {
-  margin-top: 20px;
-}
-
-.actions-footer {
-  text-align: center;
-  margin-top: 30px;
-}
-
-/* Utilidades */
-.btn-success {
-  background: linear-gradient(135deg, #4CAF50, #45a049);
-}
-
-.hidden {
-  display: none !important;
+@media (max-width: 600px) {
+  .services-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .time-slots {
+    grid-template-columns: repeat(3, 1fr);
+  }
 }
