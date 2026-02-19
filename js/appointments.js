@@ -1,9 +1,9 @@
 // ============================================
-// APPOINTMENTS - AGENDAR CITAS
+// APPOINTMENTS - AGENDAR CITAS (CORREGIDO)
 // ============================================
 
 let citaActual = {
-  servicio: '',
+  servicio: 'Manicure',
   duracion: 60,
   fecha: '',
   hora: ''
@@ -32,16 +32,20 @@ document.addEventListener('DOMContentLoaded', function() {
   // Escuchar cambio de servicio
   const servicios = document.querySelectorAll('input[name="servicio"]');
   servicios.forEach(radio => {
-    radio.addEventListener('change', actualizarResumen);
+    radio.addEventListener('change', function() {
+      citaActual.servicio = this.value;
+      citaActual.duracion = parseInt(this.dataset.duracion);
+      cargarHorarios();
+    });
   });
   
   // Cargar horarios iniciales
-  cargarHorarios();
+  setTimeout(cargarHorarios, 500);
   actualizarResumen();
 });
 
 // ============================================
-// CARGAR HORARIOS DISPONIBLES
+// CARGAR HORARIOS DISPONIBLES (SIMPLIFICADO)
 // ============================================
 async function cargarHorarios() {
   const fechaInput = document.getElementById('fecha-cita');
@@ -67,17 +71,19 @@ async function cargarHorarios() {
   Loader.show('Cargando horarios...');
   
   try {
-    // Obtener citas existentes
+    // Consulta simple sin ordenamiento complejo
     const citasRef = db.collection('appointments');
-    const snapshot = await citasRef.where('fecha', '==', fecha).get();
+    const snapshot = await citasRef.get(); // Traer todas (filtrar en cliente por ahora)
     
     const ocupados = [];
     snapshot.forEach(doc => {
       const cita = doc.data();
-      if (cita.estado !== 'cancelada') {
+      // Solo citas de esta fecha y no canceladas
+      if (cita.fecha === fecha && cita.estado !== 'cancelada') {
+        const inicio = horaAMinutos(cita.hora);
         ocupados.push({
-          inicio: horaAMinutos(cita.hora),
-          fin: horaAMinutos(cita.hora) + (cita.duracion || 60)
+          inicio: inicio,
+          fin: inicio + (cita.duracion || 60)
         });
       }
     });
@@ -95,7 +101,10 @@ async function cargarHorarios() {
         );
         
         if (disponible && fin <= 19 * 60) {
-          horarios.push(`${h.toString().padStart(2,'0')}:${m.toString().padStart(2,'0')}`);
+          horarios.push({
+            hora: `${h.toString().padStart(2,'0')}:${m.toString().padStart(2,'0')}`,
+            minutos: inicio
+          });
         }
       }
     }
@@ -104,9 +113,9 @@ async function cargarHorarios() {
     if (horarios.length === 0) {
       contenedor.innerHTML = '<p class="error-text">No hay horarios disponibles para esta fecha</p>';
     } else {
-      contenedor.innerHTML = horarios.map(hora => `
-        <button class="time-slot" onclick="seleccionarHora('${hora}')" data-hora="${hora}">
-          ${hora}
+      contenedor.innerHTML = horarios.map(h => `
+        <button type="button" class="time-slot" onclick="seleccionarHora('${h.hora}')" data-hora="${h.hora}">
+          ${h.hora}
         </button>
       `).join('');
     }
@@ -115,7 +124,7 @@ async function cargarHorarios() {
     
   } catch (error) {
     console.error('Error cargando horarios:', error);
-    contenedor.innerHTML = '<p class="error-text">Error al cargar horarios</p>';
+    contenedor.innerHTML = '<p class="error-text">Error al cargar horarios. Intenta de nuevo.</p>';
   } finally {
     Loader.hide();
   }
@@ -146,22 +155,14 @@ function seleccionarHora(hora) {
 // ACTUALIZAR RESUMEN
 // ============================================
 function actualizarResumen() {
-  // Obtener servicio seleccionado
-  const servicioSeleccionado = document.querySelector('input[name="servicio"]:checked');
-  if (servicioSeleccionado) {
-    citaActual.servicio = servicioSeleccionado.value;
-    citaActual.duracion = parseInt(servicioSeleccionado.dataset.duracion);
-  }
-  
-  // Actualizar DOM
-  document.getElementById('resumen-servicio').textContent = citaActual.servicio || '-';
+  document.getElementById('resumen-servicio').textContent = citaActual.servicio;
   document.getElementById('resumen-fecha').textContent = citaActual.fecha || '-';
   document.getElementById('resumen-hora').textContent = citaActual.hora || '-';
-  document.getElementById('resumen-duracion').textContent = citaActual.duracion ? citaActual.duracion + ' min' : '-';
+  document.getElementById('resumen-duracion').textContent = citaActual.duracion + ' min';
 }
 
 // ============================================
-// CONFIRMAR CITA
+// CONFIRMAR CITA (CORREGIDO)
 // ============================================
 async function confirmarCita() {
   // Validaciones
@@ -188,7 +189,7 @@ async function confirmarCita() {
   
   try {
     // Crear cita
-    await db.collection('appointments').add({
+    const citaData = {
       userId: userData.id,
       nombre: userData.nombre,
       telefono: userData.telefono,
@@ -198,14 +199,18 @@ async function confirmarCita() {
       hora: citaActual.hora,
       estado: 'confirmada',
       creada: firebase.firestore.FieldValue.serverTimestamp()
-    });
+    };
+    
+    console.log('Guardando cita:', citaData);
+    
+    await db.collection('appointments').add(citaData);
     
     // Mostrar modal éxito
     document.getElementById('modal-exito').classList.remove('hidden');
     
   } catch (error) {
     console.error('Error guardando cita:', error);
-    Toast.show('Error al agendar. Intenta de nuevo.', 'error');
+    Toast.show('Error al agendar: ' + error.message, 'error');
   } finally {
     Loader.hide();
   }
