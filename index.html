@@ -6,56 +6,91 @@
   <title>Glam Room - Tarjeta de Lealtad</title>
   <link rel="stylesheet" href="css/styles.css">
   
-  <!-- Firebase SDK (Compat) -->
+  <!-- Firebase -->
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
 </head>
 <body>
-  <!-- Contenedor Login -->
-  <div id="login-container">
-    <div id="login-section">
+  
+  <!-- LOGIN -->
+  <div id="login-container" class="container">
+    <div class="login-box">
+      <img src="assets/logo.png" alt="Glam Room" class="logo">
+      
       <h2>✨ Bienvenida ✨</h2>
-      <p>Ingresa tu número de teléfono para ver tu tarjeta</p>
+      <p>Ingresa tus datos para ver tu tarjeta de lealtad</p>
       
-      <input type="tel" id="telefono" placeholder="55 1234 5678" maxlength="15">
-      
-      <!-- Campo nombre (oculto inicialmente) -->
-      <div id="nombre-container" class="hidden" style="display: none;">
-        <input type="text" id="nombre" placeholder="Tu nombre completo">
+      <div class="form-group">
+        <input type="text" id="nombre" placeholder="Tu nombre completo" maxlength="50">
       </div>
       
-      <div id="recaptcha-container"></div>
+      <div class="form-group">
+        <input type="tel" id="telefono" placeholder="55 1234 5678" maxlength="15">
+      </div>
       
-      <button id="btn-enviar-codigo">Enviar Código SMS</button>
-    </div>
-    
-    <!-- Sección Código (oculta inicialmente) -->
-    <div id="codigo-section" class="hidden" style="display: none;">
-      <h3>Verifica tu código</h3>
-      <p>Enviado a: <span id="telefono-mostrar"></span></p>
-      <input type="text" id="codigo" placeholder="123456" maxlength="6">
-      <button id="btn-verificar">Verificar</button>
+      <button id="btn-login" class="btn-primary">Ver Mi Tarjeta</button>
+      
+      <p class="admin-link">
+        <a href="admin.html">Acceso Administrador</a>
+      </p>
     </div>
   </div>
 
-  <!-- Dashboard (oculto inicialmente) -->
-  <div id="dashboard" class="hidden" style="display: none;">
-    <h2>💕 Tu Tarjeta Glam 💕</h2>
-    <button id="btn-logout">Cerrar Sesión</button>
+  <!-- DASHBOARD (Inicialmente oculto) -->
+  <div id="dashboard" class="hidden">
+    <header>
+      <img src="assets/logo.png" alt="Glam Room" class="logo-small">
+      <button id="btn-logout" class="btn-small">Salir</button>
+    </header>
     
-    <div id="user-name">-</div>
-    <div id="user-level">✨ BRONCE</div>
-    <div id="visit-count">0 / 10 visitas</div>
-    <div id="stars-container"></div>
-    
-    <div id="recompensa-banner" class="hidden" style="display: none;">
-      <h3>🎉 ¡Felicidades! Canjea tu recompensa 🎉</h3>
-      <button onclick="canjearRecompensa()">Canjear Ahora</button>
+    <div class="container">
+      <div class="loyalty-card">
+        <h2>💕 Tu Tarjeta Glam 💕</h2>
+        
+        <div class="user-info">
+          <div id="user-name" class="user-name">-</div>
+          <div id="user-level" class="user-level">✨ BRONCE</div>
+          <div id="visit-count" class="visit-count">0 / 10 visitas</div>
+        </div>
+        
+        <div id="stars-container" class="stars-container">
+          <!-- Estrellas se generan con JS -->
+        </div>
+        
+        <div id="recompensa-banner" class="recompensa-banner hidden">
+          <h3>🎉 ¡Felicidades! 🎉</h3>
+          <p>Tienes una recompensa disponible</p>
+          <button onclick="canjearRecompensa()" class="btn-success">Canjear Ahora</button>
+        </div>
+      </div>
+      
+      <div class="actions">
+        <a href="agendar.html" class="action-btn">
+          <span class="icon">📅</span>
+          <span>Agendar Cita</span>
+        </a>
+        <a href="mis-citas.html" class="action-btn">
+          <span class="icon">📋</span>
+          <span>Mis Citas</span>
+        </a>
+      </div>
+      
+      <div class="historial-section">
+        <h3>📅 Historial de Visitas</h3>
+        <div id="historial-list" class="historial-list">
+          <p class="empty-state">Cargando...</p>
+        </div>
+      </div>
     </div>
+    
+    <footer>
+      <p>Síguenos <a href="https://instagram.com/theglamroom.mx" target="_blank">@theglamroom.mx</a></p>
+    </footer>
   </div>
 
-  <!-- Tu app.js al final -->
+  <!-- Scripts -->
+  <script src="js/firebase-config.js"></script>
   <script src="js/app.js"></script>
+  
 </body>
 </html>
