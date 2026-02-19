@@ -1,215 +1,216 @@
-// ==========================================
-// APPOINTMENTS - Sistema de Citas
-// ==========================================
+// ============================================
+// APPOINTMENTS - AGENDAR CITAS
+// ============================================
 
-let appointmentData = {
-    clientId: null,
-    clientName: '',
-    phone: '',
-    service: null,
-    serviceName: '',
-    duration: 0,
-    date: null,
-    time: null
+let citaActual = {
+  servicio: '',
+  duracion: 60,
+  fecha: '',
+  hora: ''
 };
 
-let currentMonth = new Date();
-let selectedDate = null;
-const businessHours = { start: 9, end: 19, interval: 30 };
-
-document.addEventListener('DOMContentLoaded', async () => {
-    const isLoggedIn = await checkSession();
-    if (!isLoggedIn) {
-        showNotification('Debes iniciar sesión primero', 'error');
-        setTimeout(() => window.location.href = 'index.html', 2000);
-        return;
-    }
+// Verificar sesión al cargar
+document.addEventListener('DOMContentLoaded', function() {
+  const saved = sessionStorage.getItem('glamUser');
+  if (!saved) {
+    Toast.show('Debes iniciar sesión primero', 'error');
+    setTimeout(() => window.location.href = 'index.html', 2000);
+    return;
+  }
+  
+  // Configurar fecha mínima (hoy)
+  const fechaInput = document.getElementById('fecha-cita');
+  if (fechaInput) {
+    const hoy = new Date().toISOString().split('T')[0];
+    fechaInput.min = hoy;
+    fechaInput.value = hoy;
     
-    appointmentData.clientId = currentClient.id;
-    appointmentData.clientName = currentClient.name;
-    appointmentData.phone = currentClient.id;
+    // Escuchar cambio de fecha
+    fechaInput.addEventListener('change', cargarHorarios);
+  }
+  
+  // Escuchar cambio de servicio
+  const servicios = document.querySelectorAll('input[name="servicio"]');
+  servicios.forEach(radio => {
+    radio.addEventListener('change', actualizarResumen);
+  });
+  
+  // Cargar horarios iniciales
+  cargarHorarios();
+  actualizarResumen();
 });
 
-function selectService(id, name, duration) {
-    appointmentData.service = id;
-    appointmentData.serviceName = name;
-    appointmentData.duration = duration;
+// ============================================
+// CARGAR HORARIOS DISPONIBLES
+// ============================================
+async function cargarHorarios() {
+  const fechaInput = document.getElementById('fecha-cita');
+  const contenedor = document.getElementById('horarios-disponibles');
+  
+  if (!fechaInput || !contenedor) return;
+  
+  const fecha = fechaInput.value;
+  if (!fecha) {
+    contenedor.innerHTML = '<p class="info-text">Selecciona una fecha</p>';
+    return;
+  }
+  
+  citaActual.fecha = fecha;
+  
+  // Verificar si es domingo
+  const fechaObj = new Date(fecha);
+  if (fechaObj.getDay() === 0) {
+    contenedor.innerHTML = '<p class="error-text">No atendemos los domingos</p>';
+    return;
+  }
+  
+  Loader.show('Cargando horarios...');
+  
+  try {
+    // Obtener citas existentes
+    const citasRef = db.collection('appointments');
+    const snapshot = await citasRef.where('fecha', '==', fecha).get();
     
-    document.getElementById('step1').classList.add('hidden');
-    document.getElementById('step2').classList.remove('hidden');
-    
-    renderCalendar();
-}
-
-function renderCalendar() {
-    const year = currentMonth.getFullYear();
-    const month = currentMonth.getMonth();
-    
-    const monthNames = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 
-                       'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
-    document.getElementById('currentMonth').textContent = `${monthNames[month]} ${year}`;
-    
-    const firstDay = new Date(year, month, 1).getDay();
-    const daysInMonth = new Date(year, month + 1, 0).getDate();
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    
-    let html = '';
-    
-    const weekDays = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
-    weekDays.forEach(day => {
-        html += `<div class="calendar-day header">${day}</div>`;
+    const ocupados = [];
+    snapshot.forEach(doc => {
+      const cita = doc.data();
+      if (cita.estado !== 'cancelada') {
+        ocupados.push({
+          inicio: horaAMinutos(cita.hora),
+          fin: horaAMinutos(cita.hora) + (cita.duracion || 60)
+        });
+      }
     });
     
-    for (let i = 0; i < firstDay; i++) {
-        html += `<div class="calendar-day empty"></div>`;
-    }
-    
-    for (let day = 1; day <= daysInMonth; day++) {
-        const date = new Date(year, month, day);
-        const isPast = date < today;
-        const isSunday = date.getDay() === 0;
-        const isSelected = selectedDate && date.toDateString() === selectedDate.toDateString();
+    // Generar horarios disponibles (9:00 - 19:00)
+    const horarios = [];
+    for (let h = 9; h < 19; h++) {
+      for (let m = 0; m < 60; m += 30) {
+        const inicio = h * 60 + m;
+        const fin = inicio + citaActual.duracion;
         
-        let classes = 'calendar-day';
-        if (isPast || isSunday) classes += ' disabled';
-        if (isSelected) classes += ' selected';
+        // Verificar solapamiento
+        const disponible = !ocupados.some(ocup => 
+          inicio < ocup.fin && fin > ocup.inicio
+        );
         
-        if (!isPast && !isSunday) {
-            html += `<div class="${classes}" onclick="selectDate(${year}, ${month}, ${day})">${day}</div>`;
-        } else {
-            html += `<div class="${classes}">${day}</div>`;
+        if (disponible && fin <= 19 * 60) {
+          horarios.push(`${h.toString().padStart(2,'0')}:${m.toString().padStart(2,'0')}`);
         }
+      }
     }
     
-    document.getElementById('calendarGrid').innerHTML = html;
-}
-
-function changeMonth(delta) {
-    currentMonth.setMonth(currentMonth.getMonth() + delta);
-    renderCalendar();
-}
-
-function selectDate(year, month, day) {
-    selectedDate = new Date(year, month, day);
-    appointmentData.date = DateUtils.toISOString(selectedDate);
-    
-    renderCalendar();
-    
-    document.getElementById('step2').classList.add('hidden');
-    document.getElementById('step3').classList.remove('hidden');
-    
-    loadAvailableTimes();
-}
-
-async function loadAvailableTimes() {
-    const container = document.getElementById('timeSlots');
-    const dateDisplay = document.getElementById('selectedDateDisplay');
-    
-    dateDisplay.textContent = `Fecha: ${DateUtils.formatDisplay(appointmentData.date)}`;
-    container.innerHTML = '<p><i class="fas fa-spinner fa-spin"></i> Cargando...</p>';
-    
-    try {
-        const snapshot = await db.collection('appointments')
-            .where('date', '==', appointmentData.date)
-            .get();
-        
-        const bookedTimes = [];
-        snapshot.forEach(doc => {
-            const data = doc.data();
-            if (data.status === 'confirmed' || data.status === 'pending') {
-                bookedTimes.push(data.time);
-            }
-        });
-        
-        const slots = [];
-        for (let hour = businessHours.start; hour < businessHours.end; hour++) {
-            for (let min = 0; min < 60; min += businessHours.interval) {
-                const timeStr = `${String(hour).padStart(2, '0')}:${String(min).padStart(2, '0')}`;
-                const isBooked = bookedTimes.includes(timeStr);
-                
-                slots.push(`
-                    <button class="time-slot ${isBooked ? 'booked' : ''}" 
-                            ${isBooked ? 'disabled' : `onclick="selectTime('${timeStr}')"`}>
-                        ${timeStr}
-                        ${isBooked ? '<small>Ocupado</small>' : ''}
-                    </button>
-                `);
-            }
-        }
-        
-        container.innerHTML = slots.join('');
-        
-    } catch (error) {
-        console.error('Error:', error);
-        container.innerHTML = `
-            <p style="color: #e74c3c;">Error al cargar horarios</p>
-            <button onclick="loadAvailableTimes()" class="btn-secondary">Reintentar</button>
-        `;
+    // Renderizar
+    if (horarios.length === 0) {
+      contenedor.innerHTML = '<p class="error-text">No hay horarios disponibles para esta fecha</p>';
+    } else {
+      contenedor.innerHTML = horarios.map(hora => `
+        <button class="time-slot" onclick="seleccionarHora('${hora}')" data-hora="${hora}">
+          ${hora}
+        </button>
+      `).join('');
     }
-}
-
-function selectTime(time) {
-    appointmentData.time = time;
     
-    document.querySelectorAll('.time-slot').forEach(btn => btn.classList.remove('selected'));
-    event.target.classList.add('selected');
+    actualizarResumen();
     
-    setTimeout(() => {
-        document.getElementById('step3').classList.add('hidden');
-        document.getElementById('step4').classList.remove('hidden');
-        updateSummary();
-    }, 200);
+  } catch (error) {
+    console.error('Error cargando horarios:', error);
+    contenedor.innerHTML = '<p class="error-text">Error al cargar horarios</p>';
+  } finally {
+    Loader.hide();
+  }
 }
 
-function updateSummary() {
-    document.getElementById('summaryService').textContent = appointmentData.serviceName;
-    document.getElementById('summaryDate').textContent = DateUtils.formatDisplay(appointmentData.date);
-    document.getElementById('summaryTime').textContent = appointmentData.time;
-    document.getElementById('summaryDuration').textContent = `${appointmentData.duration} minutos`;
+function horaAMinutos(hora) {
+  const [h, m] = hora.split(':').map(Number);
+  return h * 60 + m;
 }
 
-async function confirmAppointment() {
-    const btn = document.querySelector('#step4 .btn-primary');
-    btn.disabled = true;
-    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Agendando...';
+// ============================================
+// SELECCIONAR HORA
+// ============================================
+function seleccionarHora(hora) {
+  citaActual.hora = hora;
+  
+  // Actualizar UI
+  document.querySelectorAll('.time-slot').forEach(btn => {
+    btn.classList.remove('selected');
+  });
+  const seleccionado = document.querySelector(`[data-hora="${hora}"]`);
+  if (seleccionado) seleccionado.classList.add('selected');
+  
+  actualizarResumen();
+}
+
+// ============================================
+// ACTUALIZAR RESUMEN
+// ============================================
+function actualizarResumen() {
+  // Obtener servicio seleccionado
+  const servicioSeleccionado = document.querySelector('input[name="servicio"]:checked');
+  if (servicioSeleccionado) {
+    citaActual.servicio = servicioSeleccionado.value;
+    citaActual.duracion = parseInt(servicioSeleccionado.dataset.duracion);
+  }
+  
+  // Actualizar DOM
+  document.getElementById('resumen-servicio').textContent = citaActual.servicio || '-';
+  document.getElementById('resumen-fecha').textContent = citaActual.fecha || '-';
+  document.getElementById('resumen-hora').textContent = citaActual.hora || '-';
+  document.getElementById('resumen-duracion').textContent = citaActual.duracion ? citaActual.duracion + ' min' : '-';
+}
+
+// ============================================
+// CONFIRMAR CITA
+// ============================================
+async function confirmarCita() {
+  // Validaciones
+  if (!citaActual.servicio) {
+    Toast.show('Selecciona un servicio', 'error');
+    return;
+  }
+  if (!citaActual.fecha) {
+    Toast.show('Selecciona una fecha', 'error');
+    return;
+  }
+  if (!citaActual.hora) {
+    Toast.show('Selecciona una hora', 'error');
+    return;
+  }
+  
+  const userData = JSON.parse(sessionStorage.getItem('glamUser'));
+  if (!userData) {
+    Toast.show('Debes iniciar sesión', 'error');
+    return;
+  }
+  
+  Loader.show('Guardando cita...');
+  
+  try {
+    // Crear cita
+    await db.collection('appointments').add({
+      userId: userData.id,
+      nombre: userData.nombre,
+      telefono: userData.telefono,
+      servicio: citaActual.servicio,
+      duracion: citaActual.duracion,
+      fecha: citaActual.fecha,
+      hora: citaActual.hora,
+      estado: 'confirmada',
+      creada: firebase.firestore.FieldValue.serverTimestamp()
+    });
     
-    try {
-        const appointment = {
-            ...appointmentData,
-            status: 'confirmed',
-            createdAt: new Date().toISOString(),
-            reminderSent: false,
-            whatsappReminder: document.getElementById('whatsappReminder').checked
-        };
-        
-        await db.collection('appointments').add(appointment);
-        
-        // ENVIAR WHATSAPP AUTOMÁTICAMENTE
-        if (appointment.whatsappReminder) {
-            whatsAppService.sendAppointmentConfirmation(appointment);
-        }
-        
-        document.getElementById('step4').classList.add('hidden');
-        document.getElementById('stepSuccess').classList.remove('hidden');
-        
-        document.getElementById('appointmentDetails').innerHTML = `
-            <div class="detail-box">
-                <p><strong>${appointment.serviceName}</strong></p>
-                <p>📅 ${DateUtils.formatDisplay(appointment.date)}</p>
-                <p>🕐 ${appointment.time}</p>
-            </div>
-        `;
-        
-    } catch (error) {
-        console.error('Error:', error);
-        showNotification('Error al agendar', 'error');
-        btn.disabled = false;
-        btn.innerHTML = '<i class="fab fa-whatsapp"></i> Confirmar y Agendar';
-    }
+    // Mostrar modal éxito
+    document.getElementById('modal-exito').classList.remove('hidden');
+    
+  } catch (error) {
+    console.error('Error guardando cita:', error);
+    Toast.show('Error al agendar. Intenta de nuevo.', 'error');
+  } finally {
+    Loader.hide();
+  }
 }
 
-function backToStep(step) {
-    document.querySelectorAll('.step').forEach(s => s.classList.add('hidden'));
-    document.getElementById(`step${step}`).classList.remove('hidden');
-}
+// Exponer funciones
+window.seleccionarHora = seleccionarHora;
+window.confirmarCita = confirmarCita;
