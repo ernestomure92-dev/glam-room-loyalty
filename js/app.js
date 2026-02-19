@@ -17,8 +17,8 @@ const firebaseConfig = {
   authDomain: "glam-room-loyalty.firebaseapp.com",
   projectId: "glam-room-loyalty",
   storageBucket: "glam-room-loyalty.appspot.com",
-  messagingSenderId: "123456789012",
-  appId: "1:123456789012:web:abcdef123456789"
+  messagingSenderId: "724288769963",
+  appId: "1:724288769963:web:02e78c225c0ba8c3a20cee"
 };
 
 // Inicializar solo si no está inicializado
