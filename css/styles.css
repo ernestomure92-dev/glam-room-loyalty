@@ -1,323 +1,310 @@
 /* ============================================
-   GLAM ROOM - STYLES COMPLETOS
+   ESTILOS PARA CITAS
    ============================================ */
 
-/* Reset y Base */
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
-
-body {
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  background: linear-gradient(135deg, #ff6b9d 0%, #c44569 50%, #f8b500 100%);
-  min-height: 100vh;
-  color: #333;
-  line-height: 1.6;
-}
-
-/* Contenedor Principal */
-.container {
-  max-width: 600px;
-  margin: 0 auto;
-  padding: 20px;
-}
-
-/* Header */
-header {
-  text-align: center;
-  padding: 20px 0;
-}
-
-.logo {
-  max-width: 200px;
-  height: auto;
+.page-header {
+  display: flex;
+  align-items: center;
+  gap: 15px;
   margin-bottom: 20px;
+  padding: 10px 0;
 }
 
-/* Tarjeta de Lealtad */
-.loyalty-card {
+.back-link {
+  color: white;
+  text-decoration: none;
+  font-size: 1.1rem;
+  font-weight: 500;
+}
+
+.back-link:hover {
+  text-decoration: underline;
+}
+
+.subtitle {
+  color: rgba(255,255,255,0.9);
+  text-align: center;
+  margin-bottom: 30px;
+}
+
+/* Formulario de Citas */
+.appointment-form {
   background: white;
   border-radius: 20px;
   padding: 30px;
-  margin: 20px 0;
-  box-shadow: 0 10px 40px rgba(0,0,0,0.2);
-  text-align: center;
+  margin-bottom: 30px;
 }
 
-.loyalty-card h2 {
+.form-step {
+  margin-bottom: 30px;
+  padding-bottom: 30px;
+  border-bottom: 1px solid #eee;
+}
+
+.form-step:last-child {
+  border-bottom: none;
+  margin-bottom: 0;
+  padding-bottom: 0;
+}
+
+.form-step h3 {
   color: #c44569;
   margin-bottom: 20px;
-  font-size: 1.8rem;
+  font-size: 1.2rem;
 }
 
-/* Información del Usuario */
-.user-info {
-  margin-bottom: 20px;
+/* Grid de Servicios */
+.services-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 15px;
 }
 
-.user-name {
-  font-size: 1.5rem;
-  font-weight: bold;
-  color: #333;
-  margin-bottom: 10px;
-}
-
-.user-level {
-  display: inline-block;
-  background: linear-gradient(135deg, #ffd700, #ffed4e);
-  color: #333;
-  padding: 8px 20px;
-  border-radius: 20px;
-  font-weight: bold;
-  font-size: 0.9rem;
-  margin-bottom: 15px;
-}
-
-.visit-count {
-  color: #666;
-  font-size: 1.1rem;
-  margin-bottom: 20px;
-}
-
-/* Sistema de Estrellas */
-.stars-container {
-  display: flex;
-  justify-content: center;
-  gap: 8px;
-  flex-wrap: wrap;
-  margin: 20px 0;
-  padding: 20px;
+.service-card {
+  position: relative;
   background: #f8f9fa;
+  border: 2px solid transparent;
   border-radius: 15px;
-}
-
-.star {
-  font-size: 2rem;
-  opacity: 0.3;
-  transition: all 0.3s ease;
-}
-
-.star.active {
-  opacity: 1;
-  transform: scale(1.1);
-}
-
-/* Recompensa */
-.recompensa-banner {
-  background: linear-gradient(135deg, #4CAF50, #45a049);
-  color: white;
   padding: 20px;
-  border-radius: 15px;
-  margin: 20px 0;
   text-align: center;
+  cursor: pointer;
+  transition: all 0.3s;
 }
 
-.recompensa-banner h3 {
-  margin-bottom: 15px;
-  font-size: 1.3rem;
+.service-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 5px 15px rgba(0,0,0,0.1);
 }
 
-/* Formularios */
-.form-group {
-  margin-bottom: 20px;
+.service-card input {
+  position: absolute;
+  opacity: 0;
 }
 
-input[type="tel"],
-input[type="text"] {
+.service-card input:checked + .service-name,
+.service-card:has(input:checked) {
+  border-color: #ff6b9d;
+  background: #fff0f3;
+}
+
+.service-name {
+  display: block;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 5px;
+}
+
+.service-time {
+  display: block;
+  font-size: 0.85rem;
+  color: #666;
+}
+
+/* Input Fecha */
+input[type="date"] {
   width: 100%;
   padding: 15px;
   border: 2px solid #ddd;
   border-radius: 10px;
   font-size: 16px;
-  transition: border-color 0.3s;
-  margin-bottom: 10px;
+  font-family: inherit;
 }
 
-input[type="tel"]:focus,
-input[type="text"]:focus {
-  outline: none;
-  border-color: #ff6b9d;
+/* Horarios */
+.time-slots {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+  gap: 10px;
 }
 
-/* Botones */
-button,
-.btn {
-  background: linear-gradient(135deg, #ff6b9d, #c44569);
-  color: white;
-  border: none;
-  padding: 15px 30px;
-  border-radius: 25px;
-  font-size: 1rem;
-  font-weight: bold;
+.time-slot {
+  background: #f8f9fa;
+  border: 2px solid transparent;
+  padding: 12px;
+  border-radius: 10px;
   cursor: pointer;
-  transition: all 0.3s ease;
-  width: 100%;
-  margin-bottom: 10px;
+  transition: all 0.3s;
+  font-size: 0.95rem;
 }
 
-button:hover,
-.btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 5px 20px rgba(196, 69, 105, 0.4);
+.time-slot:hover {
+  background: #fff0f3;
 }
 
-button:active {
-  transform: translateY(0);
+.time-slot.selected {
+  background: #ff6b9d;
+  color: white;
+  border-color: #c44569;
 }
 
-.btn-secondary {
-  background: white;
-  color: #c44569;
-  border: 2px solid #c44569;
-}
-
-.btn-small {
-  width: auto;
-  padding: 10px 20px;
-  font-size: 0.9rem;
-}
-
-/* Secciones Ocultas */
-.hidden {
-  display: none !important;
-}
-
-/* Login Container */
-#login-container {
-  max-width: 400px;
-  margin: 50px auto;
-  padding: 20px;
-}
-
-#login-section,
-#codigo-section {
-  background: white;
-  padding: 40px;
-  border-radius: 20px;
-  box-shadow: 0 10px 40px rgba(0,0,0,0.2);
-  text-align: center;
-}
-
-#login-section h2,
-#codigo-section h3 {
-  color: #c44569;
-  margin-bottom: 10px;
-}
-
-#login-section p {
+.info-text {
   color: #666;
-  margin-bottom: 30px;
-}
-
-/* Dashboard */
-#dashboard {
-  max-width: 600px;
-  margin: 0 auto;
+  text-align: center;
   padding: 20px;
 }
 
-#dashboard header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+.error-text {
+  color: #f44336;
+  text-align: center;
+  padding: 20px;
+}
+
+/* Resumen */
+.summary-box {
+  background: #f8f9fa;
+  padding: 20px;
+  border-radius: 15px;
   margin-bottom: 20px;
 }
 
-/* Niveles */
-.level-bronce { background: linear-gradient(135deg, #cd7f32, #daa520); color: white; }
-.level-plata { background: linear-gradient(135deg, #c0c0c0, #e8e8e8); color: #333; }
-.level-oro { background: linear-gradient(135deg, #ffd700, #ffed4e); color: #333; }
-.level-diamante { background: linear-gradient(135deg, #b9f2ff, #00bfff); color: #333; }
-
-/* Acciones */
-.actions {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 15px;
-  margin: 20px 0;
+.summary-box p {
+  margin-bottom: 10px;
+  color: #333;
 }
 
-.action-btn {
-  background: white;
+.summary-box strong {
   color: #c44569;
-  padding: 20px;
-  border-radius: 15px;
+}
+
+.btn-large {
+  width: 100%;
+  padding: 18px;
+  font-size: 1.1rem;
+}
+
+/* Modal */
+.modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.8);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 10000;
+}
+
+.modal-content {
+  background: white;
+  padding: 40px;
+  border-radius: 20px;
   text-align: center;
-  text-decoration: none;
-  box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-  transition: all 0.3s;
+  max-width: 400px;
+  width: 90%;
 }
 
-.action-btn:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+.modal-content h3 {
+  color: #4CAF50;
+  margin-bottom: 15px;
+  font-size: 1.5rem;
 }
 
-/* Historial */
-.historial-section {
+.modal-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 25px;
+}
+
+/* Lista de Citas */
+.citas-list {
+  margin-bottom: 30px;
+}
+
+.cita-card {
   background: white;
-  padding: 20px;
   border-radius: 15px;
-  margin-top: 20px;
+  padding: 20px;
+  margin-bottom: 15px;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.1);
 }
 
-.historial-section h3 {
-  color: #c44569;
+.cita-proxima {
+  border-left: 4px solid #4CAF50;
+}
+
+.cita-pasada {
+  border-left: 4px solid #999;
+  opacity: 0.7;
+}
+
+.cita-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.cita-servicio {
+  font-weight: bold;
+  color: #333;
+  font-size: 1.1rem;
+}
+
+.cita-estado {
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+}
+
+.cita-estado.confirmada {
+  background: #e8f5e9;
+  color: #2e7d32;
+}
+
+.cita-fecha {
+  color: #666;
+  margin-bottom: 5px;
+}
+
+.cita-duracion {
+  color: #999;
+  font-size: 0.9rem;
   margin-bottom: 15px;
 }
 
-.historial-item {
-  display: flex;
-  justify-content: space-between;
-  padding: 12px 0;
-  border-bottom: 1px solid #eee;
+.btn-cancelar {
+  background: #ffebee;
+  color: #c62828;
+  border: 1px solid #ef9a9a;
+  padding: 8px 16px;
+  font-size: 0.9rem;
+  width: auto;
 }
 
-.historial-item:last-child {
-  border-bottom: none;
+.btn-cancelar:hover {
+  background: #ef9a9a;
 }
 
-/* Footer */
-footer {
+.loading-text {
   text-align: center;
-  padding: 30px;
   color: white;
+  padding: 40px;
 }
 
-footer a {
-  color: white;
-  text-decoration: none;
-  font-weight: bold;
+.empty-state {
+  text-align: center;
+  padding: 40px;
+  color: #666;
 }
 
-/* Responsive */
-@media (max-width: 600px) {
-  .container {
-    padding: 10px;
-  }
-  
-  .loyalty-card {
-    padding: 20px;
-  }
-  
-  .actions {
-    grid-template-columns: 1fr;
-  }
-  
-  #login-section,
-  #codigo-section {
-    padding: 30px 20px;
-    margin: 10px;
-  }
-  
-  .star {
-    font-size: 1.5rem;
-  }
+.empty-state .btn-primary {
+  margin-top: 20px;
+}
+
+.actions-footer {
+  text-align: center;
+  margin-top: 30px;
 }
 
 /* Utilidades */
-.text-center { text-align: center; }
-.mt-20 { margin-top: 20px; }
-.mb-20 { margin-bottom: 20px; }
+.btn-success {
+  background: linear-gradient(135deg, #4CAF50, #45a049);
+}
+
+.hidden {
+  display: none !important;
+}
