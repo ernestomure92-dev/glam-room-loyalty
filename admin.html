@@ -5,66 +5,94 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Admin - Glam Room</title>
   <link rel="stylesheet" href="css/styles.css">
-  <style>
-    /* Loader mientras verifica auth */
-    #auth-loader {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: linear-gradient(135deg, #ff6b9d 0%, #c44569 100%);
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-      z-index: 9999;
-      color: white;
-    }
-    .spinner {
-      width: 50px;
-      height: 50px;
-      border: 4px solid rgba(255,255,255,0.3);
-      border-top-color: white;
-      border-radius: 50%;
-      animation: spin 1s linear infinite;
-      margin-bottom: 1rem;
-    }
-    @keyframes spin {
-      to { transform: rotate(360deg); }
-    }
-  </style>
+  
+  <!-- Firebase -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
 </head>
 <body>
-  <!-- Loader de autenticación -->
-  <div id="auth-loader">
-    <div class="spinner"></div>
-    <p>Verificando acceso...</p>
-  </div>
-
-  <!-- Contenido admin (oculto inicialmente) -->
-  <div id="admin-content" style="display: none;">
-    <header>
-      <h1>Panel de Administración</h1>
-      <button onclick="cerrarSesionAdmin()" class="btn-logout">Cerrar Sesión</button>
+  
+  <div class="container">
+    <header class="page-header">
+      <a href="index.html" class="back-link">← Salir</a>
+      <img src="assets/logo.png" alt="Glam Room" class="logo-small">
     </header>
     
-    <!-- Tu contenido actual de admin aquí -->
-    <main>
-      <section id="stats">
-        <h2>Estadísticas</h2>
-        <!-- Gráficos y stats -->
-      </section>
+    <h2 style="color: white; text-align: center; margin-bottom: 30px;">Panel de Administración</h2>
+    
+    <!-- Tabs -->
+    <div class="admin-tabs">
+      <button class="tab-btn active" onclick="mostrarTab('citas')">📅 Citas</button>
+      <button class="tab-btn" onclick="mostrarTab('clientes')">👥 Clientes</button>
+      <button class="tab-btn" onclick="mostrarTab('registrar')">⭐ Registrar Visita</button>
+    </div>
+    
+    <!-- Tab: Citas -->
+    <div id="tab-citas" class="tab-content active">
+      <div class="filter-bar">
+        <input type="date" id="filtro-fecha" onchange="cargarCitasAdmin()">
+        <button onclick="cargarCitasAdmin()" class="btn-small">Actualizar</button>
+      </div>
       
-      <section id="appointments-list">
-        <h2>Citas del Día</h2>
-        <!-- Lista de citas -->
-      </section>
-    </main>
+      <div id="lista-citas-admin" class="admin-list">
+        <p class="loading-text">Cargando citas...</p>
+      </div>
+    </div>
+    
+    <!-- Tab: Clientes -->
+    <div id="tab-clientes" class="tab-content hidden">
+      <div class="search-bar">
+        <input type="text" id="buscar-cliente" placeholder="Buscar por nombre o teléfono..." onkeyup="buscarClientes()">
+      </div>
+      
+      <div id="lista-clientes" class="admin-list">
+        <p class="loading-text">Cargando clientes...</p>
+      </div>
+    </div>
+    
+    <!-- Tab: Registrar Visita -->
+    <div id="tab-registrar" class="tab-content hidden">
+      <div class="registro-box">
+        <h3>Registrar Nueva Visita</h3>
+        
+        <div class="form-group">
+          <input type="text" id="registro-telefono" placeholder="Teléfono del cliente" onblur="buscarClienteRegistro()">
+        </div>
+        
+        <div id="info-cliente-registro" class="hidden">
+          <div class="cliente-info-card">
+            <h4 id="registro-nombre">-</h4>
+            <p>Visitas actuales: <span id="registro-visitas">0</span></p>
+            <p>Nivel: <span id="registro-nivel">-</span></p>
+          </div>
+          
+          <div class="form-group">
+            <select id="registro-servicio">
+              <option value="Manicure">Manicure</option>
+              <option value="Pedicure">Pedicure</option>
+              <option value="Uñas Gel">Uñas Gel</option>
+              <option value="Facial">Facial</option>
+              <option value="Maquillaje">Maquillaje</option>
+              <option value="Peinado">Peinado</option>
+            </select>
+          </div>
+          
+          <button onclick="registrarVisita()" class="btn-primary btn-large">
+            ⭐ Registrar Visita (+1)
+          </button>
+        </div>
+        
+        <div id="cliente-no-encontrado" class="hidden">
+          <p class="error-text">Cliente no encontrado</p>
+          <a href="index.html" class="btn-secondary">El cliente debe registrarse primero</a>
+        </div>
+      </div>
+    </div>
+    
   </div>
 
-  <!-- Scripts -->
-  <script type="module" src="js/admin-auth.js"></script>
-  <script type="module" src="js/admin-dashboard.js"></script>
+  <script src="js/firebase-config.js"></script>
+  <script src="js/admin.js"></script>
+  
 </body>
 </html>
