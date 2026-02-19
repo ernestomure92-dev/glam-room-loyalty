@@ -1,139 +1,115 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Agendar Cita - Glam Room</title>
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📅</text></svg>">
-    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="css/styles.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Agendar Cita - Glam Room</title>
+  <link rel="stylesheet" href="css/styles.css">
+  
+  <!-- Firebase -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
 </head>
 <body>
-    <div class="container">
-        <div class="appointment-container">
-            <div class="card-header">
-                <a href="index.html" class="btn-logout">← Volver</a>
-                <img src="assets/logo.png" alt="Glam Room" class="logo-small">
-            </div>
-
-            <h2>💅 Agenda tu Cita</h2>
-            <p class="subtitle">Elige fecha y hora para tu servicio</p>
-
-            <!-- Paso 1: Servicio -->
-            <div class="step" id="step1">
-                <h3>1. ¿Qué servicio necesitas?</h3>
-                <div class="services-grid">
-                    <div class="service-card" onclick="selectService('manicure', 'Manicure', 60)">
-                        <i class="fas fa-hand-sparkles"></i>
-                        <span>Manicure</span>
-                        <small>60 min</small>
-                    </div>
-                    <div class="service-card" onclick="selectService('pedicure', 'Pedicure', 60)">
-                        <i class="fas fa-shoe-prints"></i>
-                        <span>Pedicure</span>
-                        <small>60 min</small>
-                    </div>
-                    <div class="service-card" onclick="selectService('gel', 'Uñas Gel', 90)">
-                        <i class="fas fa-gem"></i>
-                        <span>Uñas Gel</span>
-                        <small>90 min</small>
-                    </div>
-                    <div class="service-card" onclick="selectService('facial', 'Facial', 45)">
-                        <i class="fas fa-spa"></i>
-                        <span>Facial</span>
-                        <small>45 min</small>
-                    </div>
-                    <div class="service-card" onclick="selectService('maquillaje', 'Maquillaje', 60)">
-                        <i class="fas fa-magic"></i>
-                        <span>Maquillaje</span>
-                        <small>60 min</small>
-                    </div>
-                    <div class="service-card" onclick="selectService('peinado', 'Peinado', 45)">
-                        <i class="fas fa-wind"></i>
-                        <span>Peinado</span>
-                        <small>45 min</small>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Paso 2: Fecha -->
-            <div class="step hidden" id="step2">
-                <h3>2. ¿Qué día te gustaría?</h3>
-                <div class="calendar-container">
-                    <div class="calendar-header">
-                        <button onclick="changeMonth(-1)" class="btn-nav"><i class="fas fa-chevron-left"></i></button>
-                        <span id="currentMonth">-</span>
-                        <button onclick="changeMonth(1)" class="btn-nav"><i class="fas fa-chevron-right"></i></button>
-                    </div>
-                    <div class="calendar-grid" id="calendarGrid"></div>
-                </div>
-                <button onclick="backToStep(1)" class="btn-secondary">← Anterior</button>
-            </div>
-
-            <!-- Paso 3: Hora -->
-            <div class="step hidden" id="step3">
-                <h3>3. ¿A qué hora?</h3>
-                <div class="time-slots" id="timeSlots"></div>
-                <p class="note" id="selectedDateDisplay"></p>
-                <button onclick="backToStep(2)" class="btn-secondary">← Anterior</button>
-            </div>
-
-            <!-- Paso 4: Confirmar -->
-            <div class="step hidden" id="step4">
-                <h3>4. Confirma tu cita</h3>
-                <div class="appointment-summary">
-                    <div class="summary-item">
-                        <span>Servicio:</span>
-                        <strong id="summaryService">-</strong>
-                    </div>
-                    <div class="summary-item">
-                        <span>Fecha:</span>
-                        <strong id="summaryDate">-</strong>
-                    </div>
-                    <div class="summary-item">
-                        <span>Hora:</span>
-                        <strong id="summaryTime">-</strong>
-                    </div>
-                    <div class="summary-item">
-                        <span>Duración:</span>
-                        <strong id="summaryDuration">-</strong>
-                    </div>
-                </div>
-                
-                <div class="whatsapp-confirm">
-                    <label>
-                        <input type="checkbox" id="whatsappReminder" checked>
-                        Recibir confirmación por WhatsApp
-                    </label>
-                </div>
-
-                <button onclick="confirmAppointment()" class="btn-primary btn-large">
-                    <i class="fab fa-whatsapp"></i> Confirmar y Agendar
-                </button>
-                <button onclick="backToStep(3)" class="btn-secondary">← Anterior</button>
-            </div>
-
-            <!-- Éxito -->
-            <div class="step hidden" id="stepSuccess">
-                <div class="success-message">
-                    <i class="fas fa-check-circle"></i>
-                    <h3>¡Cita Agendada!</h3>
-                    <p>Te enviamos los detalles por WhatsApp</p>
-                    <div id="appointmentDetails"></div>
-                    <a href="mis-citas.html" class="btn-primary">Ver mis citas</a>
-                    <a href="index.html" class="btn-secondary" style="margin-top: 10px;">Volver al inicio</a>
-                </div>
-            </div>
+  
+  <div class="container">
+    <header class="page-header">
+      <a href="index.html" class="back-link">← Volver</a>
+      <img src="assets/logo.png" alt="Glam Room" class="logo-small">
+    </header>
+    
+    <h2>💅 Agenda tu Cita</h2>
+    <p class="subtitle">Elige fecha y hora para tu servicio</p>
+    
+    <div class="appointment-form">
+      <!-- Servicio -->
+      <div class="form-step">
+        <h3>1. ¿Qué servicio necesitas?</h3>
+        <div class="services-grid">
+          <label class="service-card">
+            <input type="radio" name="servicio" value="Manicure" data-duracion="60" checked>
+            <span class="service-name">Manicure</span>
+            <span class="service-time">60 min</span>
+          </label>
+          
+          <label class="service-card">
+            <input type="radio" name="servicio" value="Pedicure" data-duracion="60">
+            <span class="service-name">Pedicure</span>
+            <span class="service-time">60 min</span>
+          </label>
+          
+          <label class="service-card">
+            <input type="radio" name="servicio" value="Uñas Gel" data-duracion="90">
+            <span class="service-name">Uñas Gel</span>
+            <span class="service-time">90 min</span>
+          </label>
+          
+          <label class="service-card">
+            <input type="radio" name="servicio" value="Facial" data-duracion="45">
+            <span class="service-name">Facial</span>
+            <span class="service-time">45 min</span>
+          </label>
+          
+          <label class="service-card">
+            <input type="radio" name="servicio" value="Maquillaje" data-duracion="60">
+            <span class="service-name">Maquillaje</span>
+            <span class="service-time">60 min</span>
+          </label>
+          
+          <label class="service-card">
+            <input type="radio" name="servicio" value="Peinado" data-duracion="45">
+            <span class="service-name">Peinado</span>
+            <span class="service-time">45 min</span>
+          </label>
         </div>
+      </div>
+      
+      <!-- Fecha -->
+      <div class="form-step">
+        <h3>2. ¿Qué día te gustaría?</h3>
+        <input type="date" id="fecha-cita" min="">
+      </div>
+      
+      <!-- Hora -->
+      <div class="form-step">
+        <h3>3. ¿A qué hora?</h3>
+        <div class="time-slots" id="horarios-disponibles">
+          <p class="info-text">Primero selecciona una fecha</p>
+        </div>
+      </div>
+      
+      <!-- Confirmación -->
+      <div class="form-step summary">
+        <h3>4. Confirma tu cita</h3>
+        <div class="summary-box">
+          <p><strong>Servicio:</strong> <span id="resumen-servicio">-</span></p>
+          <p><strong>Fecha:</strong> <span id="resumen-fecha">-</span></p>
+          <p><strong>Hora:</strong> <span id="resumen-hora">-</span></p>
+          <p><strong>Duración:</strong> <span id="resumen-duracion">-</span></p>
+        </div>
+        
+        <button id="btn-confirmar" class="btn-primary btn-large" onclick="confirmarCita()">
+          Confirmar Cita
+        </button>
+      </div>
     </div>
+  </div>
+  
+  <!-- Modal Éxito -->
+  <div id="modal-exito" class="modal hidden">
+    <div class="modal-content">
+      <h3>🎉 ¡Cita Agendada!</h3>
+      <p>Tu cita ha sido registrada exitosamente.</p>
+      <p>Te enviaremos recordatorio por WhatsApp.</p>
+      <div class="modal-actions">
+        <a href="mis-citas.html" class="btn-primary">Ver mis citas</a>
+        <a href="index.html" class="btn-secondary">Volver al inicio</a>
+      </div>
+    </div>
+  </div>
 
-    <div id="notification" class="notification"></div>
-
-    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore-compat.js"></script>
-    <script src="js/firebase-config.js"></script>
-    <script src="js/utils.js"></script>
-    <script src="js/appointments.js"></script>
+  <script src="js/firebase-config.js"></script>
+  <script src="js/appointments.js"></script>
+  
 </body>
 </html>
