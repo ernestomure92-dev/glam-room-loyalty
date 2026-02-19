@@ -1,123 +1,98 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Mis Citas - Glam Room</title>
-  <link rel="stylesheet" href="css/styles.css">
-  
-  <!-- Firebase -->
-  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
-</head>
-<body>
-  
-  <div class="container">
-    <header class="page-header">
-      <a href="index.html" class="back-link">← Volver</a>
-      <img src="assets/logo.png" alt="Glam Room" class="logo-small">
-    </header>
+<script src="js/firebase-config.js"></script>
+<script>
+  // Script inline simple para mis-citas
+  document.addEventListener('DOMContentLoaded', async function() {
+    const userData = JSON.parse(sessionStorage.getItem('glamUser'));
+    const contenedor = document.getElementById('lista-citas');
     
-    <h2>📋 Mis Citas</h2>
+    if (!userData) {
+      contenedor.innerHTML = '<p class="error-text">Debes iniciar sesión primero</p>';
+      setTimeout(() => window.location.href = 'index.html', 2000);
+      return;
+    }
     
-    <div id="lista-citas" class="citas-list">
-      <p class="loading-text">Cargando tus citas...</p>
-    </div>
-    
-    <div class="actions-footer">
-      <a href="agendar.html" class="btn-primary">Agendar Nueva Cita</a>
-    </div>
-  </div>
-
-  <script src="js/firebase-config.js"></script>
-  <script>
-    // Script inline simple para mis-citas
-    document.addEventListener('DOMContentLoaded', async function() {
-      const userData = JSON.parse(sessionStorage.getItem('glamUser'));
-      const contenedor = document.getElementById('lista-citas');
+    try {
+      // Consulta simple sin ordenamiento complejo
+      const snapshot = await db.collection('appointments').get();
       
-      if (!userData) {
-        contenedor.innerHTML = '<p class="error-text">Debes iniciar sesión primero</p>';
-        setTimeout(() => window.location.href = 'index.html', 2000);
+      // Filtrar en el cliente
+      const misCitas = [];
+      snapshot.forEach(doc => {
+        const cita = doc.data();
+        if (cita.userId === userData.id && cita.estado !== 'cancelada') {
+          misCitas.push({ id: doc.id, ...cita });
+        }
+      });
+      
+      // Ordenar manualmente
+      misCitas.sort((a, b) => {
+        if (a.fecha !== b.fecha) return a.fecha.localeCompare(b.fecha);
+        return a.hora.localeCompare(b.hora);
+      });
+      
+      if (misCitas.length === 0) {
+        contenedor.innerHTML = `
+          <div class="empty-state">
+            <p>No tienes citas agendadas</p>
+            <a href="agendar.html" class="btn-primary" style="display: inline-block; margin-top: 20px;">Agendar mi primera cita</a>
+          </div>
+        `;
         return;
       }
       
-      try {
-        const snapshot = await db.collection('appointments')
-          .where('userId', '==', userData.id)
-          .where('estado', '!=', 'cancelada')
-          .orderBy('estado')
-          .orderBy('fecha')
-          .orderBy('hora')
-          .get();
-        
-        if (snapshot.empty) {
-          contenedor.innerHTML = `
-            <div class="empty-state">
-              <p>No tienes citas agendadas</p>
-              <a href="agendar.html" class="btn-primary">Agendar mi primera cita</a>
-            </div>
-          `;
-          return;
-        }
-        
-        const hoy = new Date().toISOString().split('T')[0];
-        
-        let html = '';
-        snapshot.forEach(doc => {
-          const cita = doc.data();
-          const esPasada = cita.fecha < hoy;
-          const clase = esPasada ? 'cita-pasada' : 'cita-proxima';
-          
-          html += `
-            <div class="cita-card ${clase}">
-              <div class="cita-header">
-                <span class="cita-servicio">${cita.servicio}</span>
-                <span class="cita-estado ${cita.estado}">${cita.estado}</span>
-              </div>
-              <div class="cita-fecha">
-                📅 ${formatearFecha(cita.fecha)} | 🕐 ${cita.hora}
-              </div>
-              <div class="cita-duracion">⏱️ ${cita.duracion} minutos</div>
-              ${!esPasada ? `
-                <button onclick="cancelarCita('${doc.id}')" class="btn-cancelar">
-                  Cancelar Cita
-                </button>
-              ` : ''}
-            </div>
-          `;
-        });
-        
-        contenedor.innerHTML = html;
-        
-      } catch (error) {
-        console.error('Error:', error);
-        contenedor.innerHTML = '<p class="error-text">Error al cargar citas</p>';
-      }
-    });
-    
-    function formatearFecha(fecha) {
-      const opciones = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
-      return new Date(fecha).toLocaleDateString('es-MX', opciones);
-    }
-    
-    async function cancelarCita(citaId) {
-      if (!confirm('¿Cancelar esta cita?')) return;
+      const hoy = new Date().toISOString().split('T')[0];
+      let html = '';
       
-      try {
-        await db.collection('appointments').doc(citaId).update({
-          estado: 'cancelada',
-          cancelada: firebase.firestore.FieldValue.serverTimestamp()
-        });
-        Toast.show('Cita cancelada', 'success');
-        setTimeout(() => location.reload(), 1000);
-      } catch (error) {
-        Toast.show('Error al cancelar', 'error');
-      }
+      misCitas.forEach(cita => {
+        const esPasada = cita.fecha < hoy;
+        const clase = esPasada ? 'cita-pasada' : 'cita-proxima';
+        
+        html += `
+          <div class="cita-card ${clase}">
+            <div class="cita-header">
+              <span class="cita-servicio">${cita.servicio}</span>
+              <span class="cita-estado ${cita.estado}">${cita.estado}</span>
+            </div>
+            <div class="cita-fecha">
+              📅 ${formatearFecha(cita.fecha)} | 🕐 ${cita.hora}
+            </div>
+            <div class="cita-duracion">⏱️ ${cita.duracion} minutos</div>
+            ${!esPasada && cita.estado === 'confirmada' ? `
+              <button onclick="cancelarCita('${cita.id}')" class="btn-cancelar">
+                Cancelar Cita
+              </button>
+            ` : ''}
+          </div>
+        `;
+      });
+      
+      contenedor.innerHTML = html;
+      
+    } catch (error) {
+      console.error('Error:', error);
+      contenedor.innerHTML = '<p class="error-text">Error al cargar citas: ' + error.message + '</p>';
     }
-    
-    window.cancelarCita = cancelarCita;
-  </script>
+  });
   
-</body>
-</html>
+  function formatearFecha(fecha) {
+    const opciones = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+    return new Date(fecha).toLocaleDateString('es-MX', opciones);
+  }
+  
+  async function cancelarCita(citaId) {
+    if (!confirm('¿Cancelar esta cita?')) return;
+    
+    try {
+      await db.collection('appointments').doc(citaId).update({
+        estado: 'cancelada',
+        cancelada: firebase.firestore.FieldValue.serverTimestamp()
+      });
+      Toast.show('Cita cancelada', 'success');
+      setTimeout(() => location.reload(), 1000);
+    } catch (error) {
+      Toast.show('Error al cancelar', 'error');
+    }
+  }
+  
+  window.cancelarCita = cancelarCita;
+</script>
