@@ -1,125 +1,61 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Glam Room - Tarjeta de Lealtad</title>
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>💅</text></svg>">
-    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="css/styles.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Glam Room - Tarjeta de Lealtad</title>
+  <link rel="stylesheet" href="css/styles.css">
+  
+  <!-- Firebase SDK (Compat) -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
 </head>
 <body>
-    <div class="container">
-        <!-- Login Cliente -->
-        <div id="loginScreen" class="screen active">
-            <div class="logo-container">
-                <img src="assets/logo.png" alt="Glam Room" class="logo">
-            </div>
-            <div class="login-box">
-                <h2>✨ Bienvenida ✨</h2>
-                <p>Ingresa tu número de teléfono para ver tu tarjeta</p>
-                <input type="tel" id="phoneInput" placeholder="Ej: 5512345678" maxlength="10">
-                <button onclick="login()" class="btn-primary">Ver mi Tarjeta</button>
-                <a href="admin.html" class="admin-link">Acceso Administrador</a>
-            </div>
-        </div>
-
-        <!-- Tarjeta de Lealtad -->
-        <div id="cardScreen" class="screen">
-            <div class="card-header">
-                <img src="assets/logo.png" alt="Glam Room" class="logo-small">
-                <button onclick="logout()" class="btn-logout">Salir</button>
-            </div>
-            
-            <div class="loyalty-card">
-                <div class="card-glass">
-                    <div class="card-content">
-                        <h3>💕 Tarjeta Glam 💕</h3>
-                        <p class="client-name" id="clientName">-</p>
-                        <div class="tier-badge" id="tierBadge">Nivel: ✨ Bronce</div>
-                        <div class="stars-container" id="starsContainer"></div>
-                        <p class="progress-text">
-                            <span id="currentStars">0</span> / <span id="maxStars">10</span> visitas
-                        </p>
-                        <div class="next-reward" id="nextReward"></div>
-                        <div class="reward-status" id="rewardStatus">
-                            🎉 ¡Felicidades! Canjea tu recompensa 🎉
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="levels-info">
-                <h4>Niveles de Membresía</h4>
-                <div class="levels-grid">
-                    <div class="level-item active" data-tier="bronze">
-                        <i class="fas fa-medal"></i>
-                        <span>Bronce</span>
-                        <small>0-9 ⭐</small>
-                    </div>
-                    <div class="level-item" data-tier="silver">
-                        <i class="fas fa-medal"></i>
-                        <span>Plata</span>
-                        <small>10-24 ⭐</small>
-                    </div>
-                    <div class="level-item" data-tier="gold">
-                        <i class="fas fa-crown"></i>
-                        <span>Oro</span>
-                        <small>25-49 ⭐</small>
-                    </div>
-                    <div class="level-item" data-tier="diamond">
-                        <i class="fas fa-gem"></i>
-                        <span>Diamante</span>
-                        <small>50+ ⭐</small>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Acciones Rápidas -->
-            <div class="quick-actions">
-                <h4>¿Qué deseas hacer?</h4>
-                <a href="agendar.html" class="btn-primary">
-                    <i class="fas fa-calendar-plus"></i> Agendar Nueva Cita
-                </a>
-                <a href="mis-citas.html" class="btn-secondary">
-                    <i class="fas fa-calendar-alt"></i> Ver mis Citas
-                </a>
-                <a href="https://instagram.com/theglamroom.mx" target="_blank" class="btn-instagram">
-                    <i class="fab fa-instagram"></i> Ver nuestro trabajo
-                </a>
-            </div>
-
-            <div class="history-section">
-                <h4>📅 Historial de Visitas</h4>
-                <ul id="visitHistory" class="history-list"></ul>
-            </div>
-
-            <!-- Instagram -->
-            <div class="instagram-section">
-                <h3><i class="fab fa-instagram"></i> Síguenos</h3>
-                <p>@theglamroom.mx</p>
-                <div class="instagram-embed">
-                    <iframe src="https://www.instagram.com/theglamroom.mx/embed" 
-                            class="instagram-iframe" frameborder="0" scrolling="no"></iframe>
-                </div>
-            </div>
-        </div>
+  <!-- Contenedor Login -->
+  <div id="login-container">
+    <div id="login-section">
+      <h2>✨ Bienvenida ✨</h2>
+      <p>Ingresa tu número de teléfono para ver tu tarjeta</p>
+      
+      <input type="tel" id="telefono" placeholder="55 1234 5678" maxlength="15">
+      
+      <!-- Campo nombre (oculto inicialmente) -->
+      <div id="nombre-container" class="hidden" style="display: none;">
+        <input type="text" id="nombre" placeholder="Tu nombre completo">
+      </div>
+      
+      <div id="recaptcha-container"></div>
+      
+      <button id="btn-enviar-codigo">Enviar Código SMS</button>
     </div>
+    
+    <!-- Sección Código (oculta inicialmente) -->
+    <div id="codigo-section" class="hidden" style="display: none;">
+      <h3>Verifica tu código</h3>
+      <p>Enviado a: <span id="telefono-mostrar"></span></p>
+      <input type="text" id="codigo" placeholder="123456" maxlength="6">
+      <button id="btn-verificar">Verificar</button>
+    </div>
+  </div>
 
-    <a href="https://instagram.com/theglamroom.mx" target="_blank" class="instagram-float">
-        <i class="fab fa-instagram"></i>
-    </a>
+  <!-- Dashboard (oculto inicialmente) -->
+  <div id="dashboard" class="hidden" style="display: none;">
+    <h2>💕 Tu Tarjeta Glam 💕</h2>
+    <button id="btn-logout">Cerrar Sesión</button>
+    
+    <div id="user-name">-</div>
+    <div id="user-level">✨ BRONCE</div>
+    <div id="visit-count">0 / 10 visitas</div>
+    <div id="stars-container"></div>
+    
+    <div id="recompensa-banner" class="hidden" style="display: none;">
+      <h3>🎉 ¡Felicidades! Canjea tu recompensa 🎉</h3>
+      <button onclick="canjearRecompensa()">Canjear Ahora</button>
+    </div>
+  </div>
 
-    <div id="notification" class="notification"></div>
-
-    <!-- Scripts -->
-    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore-compat.js"></script>
-    <script src="js/firebase-config.js"></script>
-    <script src="js/utils.js"></script>
-    <script src="js/main.js"></script>
-    <script scr="js/app.js"></script>
+  <!-- Tu app.js al final -->
+  <script src="js/app.js"></script>
 </body>
 </html>
