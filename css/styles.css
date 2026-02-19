@@ -1,177 +1,323 @@
 /* ============================================
-   MEJORAS RESPONSIVE - GLAM ROOM
+   GLAM ROOM - STYLES COMPLETOS
    ============================================ */
 
-/* Variables adicionales */
-:root {
-  --safe-area-top: env(safe-area-inset-top);
-  --safe-area-bottom: env(safe-area-inset-bottom);
-  --touch-target: 48px;
+/* Reset y Base */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
 }
 
-/* Mobile First Base */
-@media (max-width: 768px) {
-  body {
-    font-size: 16px; /* Previene zoom en iOS */
-    padding: 0;
-  }
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background: linear-gradient(135deg, #ff6b9d 0%, #c44569 50%, #f8b500 100%);
+  min-height: 100vh;
+  color: #333;
+  line-height: 1.6;
+}
 
+/* Contenedor Principal */
+.container {
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+/* Header */
+header {
+  text-align: center;
+  padding: 20px 0;
+}
+
+.logo {
+  max-width: 200px;
+  height: auto;
+  margin-bottom: 20px;
+}
+
+/* Tarjeta de Lealtad */
+.loyalty-card {
+  background: white;
+  border-radius: 20px;
+  padding: 30px;
+  margin: 20px 0;
+  box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+  text-align: center;
+}
+
+.loyalty-card h2 {
+  color: #c44569;
+  margin-bottom: 20px;
+  font-size: 1.8rem;
+}
+
+/* Información del Usuario */
+.user-info {
+  margin-bottom: 20px;
+}
+
+.user-name {
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: #333;
+  margin-bottom: 10px;
+}
+
+.user-level {
+  display: inline-block;
+  background: linear-gradient(135deg, #ffd700, #ffed4e);
+  color: #333;
+  padding: 8px 20px;
+  border-radius: 20px;
+  font-weight: bold;
+  font-size: 0.9rem;
+  margin-bottom: 15px;
+}
+
+.visit-count {
+  color: #666;
+  font-size: 1.1rem;
+  margin-bottom: 20px;
+}
+
+/* Sistema de Estrellas */
+.stars-container {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin: 20px 0;
+  padding: 20px;
+  background: #f8f9fa;
+  border-radius: 15px;
+}
+
+.star {
+  font-size: 2rem;
+  opacity: 0.3;
+  transition: all 0.3s ease;
+}
+
+.star.active {
+  opacity: 1;
+  transform: scale(1.1);
+}
+
+/* Recompensa */
+.recompensa-banner {
+  background: linear-gradient(135deg, #4CAF50, #45a049);
+  color: white;
+  padding: 20px;
+  border-radius: 15px;
+  margin: 20px 0;
+  text-align: center;
+}
+
+.recompensa-banner h3 {
+  margin-bottom: 15px;
+  font-size: 1.3rem;
+}
+
+/* Formularios */
+.form-group {
+  margin-bottom: 20px;
+}
+
+input[type="tel"],
+input[type="text"] {
+  width: 100%;
+  padding: 15px;
+  border: 2px solid #ddd;
+  border-radius: 10px;
+  font-size: 16px;
+  transition: border-color 0.3s;
+  margin-bottom: 10px;
+}
+
+input[type="tel"]:focus,
+input[type="text"]:focus {
+  outline: none;
+  border-color: #ff6b9d;
+}
+
+/* Botones */
+button,
+.btn {
+  background: linear-gradient(135deg, #ff6b9d, #c44569);
+  color: white;
+  border: none;
+  padding: 15px 30px;
+  border-radius: 25px;
+  font-size: 1rem;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  width: 100%;
+  margin-bottom: 10px;
+}
+
+button:hover,
+.btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 20px rgba(196, 69, 105, 0.4);
+}
+
+button:active {
+  transform: translateY(0);
+}
+
+.btn-secondary {
+  background: white;
+  color: #c44569;
+  border: 2px solid #c44569;
+}
+
+.btn-small {
+  width: auto;
+  padding: 10px 20px;
+  font-size: 0.9rem;
+}
+
+/* Secciones Ocultas */
+.hidden {
+  display: none !important;
+}
+
+/* Login Container */
+#login-container {
+  max-width: 400px;
+  margin: 50px auto;
+  padding: 20px;
+}
+
+#login-section,
+#codigo-section {
+  background: white;
+  padding: 40px;
+  border-radius: 20px;
+  box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+  text-align: center;
+}
+
+#login-section h2,
+#codigo-section h3 {
+  color: #c44569;
+  margin-bottom: 10px;
+}
+
+#login-section p {
+  color: #666;
+  margin-bottom: 30px;
+}
+
+/* Dashboard */
+#dashboard {
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+#dashboard header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+/* Niveles */
+.level-bronce { background: linear-gradient(135deg, #cd7f32, #daa520); color: white; }
+.level-plata { background: linear-gradient(135deg, #c0c0c0, #e8e8e8); color: #333; }
+.level-oro { background: linear-gradient(135deg, #ffd700, #ffed4e); color: #333; }
+.level-diamante { background: linear-gradient(135deg, #b9f2ff, #00bfff); color: #333; }
+
+/* Acciones */
+.actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 15px;
+  margin: 20px 0;
+}
+
+.action-btn {
+  background: white;
+  color: #c44569;
+  padding: 20px;
+  border-radius: 15px;
+  text-align: center;
+  text-decoration: none;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+  transition: all 0.3s;
+}
+
+.action-btn:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+}
+
+/* Historial */
+.historial-section {
+  background: white;
+  padding: 20px;
+  border-radius: 15px;
+  margin-top: 20px;
+}
+
+.historial-section h3 {
+  color: #c44569;
+  margin-bottom: 15px;
+}
+
+.historial-item {
+  display: flex;
+  justify-content: space-between;
+  padding: 12px 0;
+  border-bottom: 1px solid #eee;
+}
+
+.historial-item:last-child {
+  border-bottom: none;
+}
+
+/* Footer */
+footer {
+  text-align: center;
+  padding: 30px;
+  color: white;
+}
+
+footer a {
+  color: white;
+  text-decoration: none;
+  font-weight: bold;
+}
+
+/* Responsive */
+@media (max-width: 600px) {
   .container {
-    width: 100%;
-    max-width: 100%;
-    padding: 1rem;
-    margin: 0;
+    padding: 10px;
   }
-
-  /* Header */
-  header {
-    padding: 1rem;
-    flex-direction: column;
-    gap: 1rem;
-  }
-
-  .logo {
-    max-width: 150px;
-  }
-
-  /* Tarjeta de lealtad */
+  
   .loyalty-card {
-    padding: 1.5rem;
-    margin: 1rem 0;
+    padding: 20px;
   }
-
-  .stars-container {
-    gap: 8px;
-  }
-
-  .star {
-    width: 35px;
-    height: 35px;
-    font-size: 18px;
-  }
-
-  /* Botones táctiles */
-  .btn, button, .button {
-    min-height: var(--touch-target);
-    min-width: var(--touch-target);
-    padding: 12px 24px;
-    font-size: 16px;
-    width: 100%;
-    margin-bottom: 0.5rem;
-  }
-
-  /* Grid de servicios */
-  .services-grid {
+  
+  .actions {
     grid-template-columns: 1fr;
-    gap: 1rem;
-  }
-
-  .service-card {
-    padding: 1rem;
-  }
-
-  /* Formularios */
-  input, select, textarea {
-    font-size: 16px; /* Previene zoom */
-    padding: 12px;
-    width: 100%;
-    box-sizing: border-box;
-  }
-
-  /* Calendario */
-  .calendar-container {
-    overflow-x: auto;
-  }
-
-  /* Tablas en admin */
-  table {
-    display: block;
-    overflow-x: auto;
-    white-space: nowrap;
-  }
-
-  th, td {
-    padding: 12px 8px;
-    min-width: 120px;
-  }
-
-  /* Navegación inferior fija (opcional) */
-  .bottom-nav {
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    background: white;
-    box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
-    display: flex;
-    justify-content: space-around;
-    padding: 0.5rem;
-    padding-bottom: calc(0.5rem + var(--safe-area-bottom));
-    z-index: 1000;
-  }
-
-  .bottom-nav + main {
-    padding-bottom: 80px;
-  }
-}
-
-/* Tablet */
-@media (min-width: 769px) and (max-width: 1024px) {
-  .services-grid {
-    grid-template-columns: repeat(2, 1fr);
   }
   
-  .container {
-    max-width: 90%;
-  }
-}
-
-/* Desktop mejorado */
-@media (min-width: 1025px) {
-  .container {
-    max-width: 1200px;
-    margin: 0 auto;
+  #login-section,
+  #codigo-section {
+    padding: 30px 20px;
+    margin: 10px;
   }
   
-  .services-grid {
-    grid-template-columns: repeat(3, 1fr);
+  .star {
+    font-size: 1.5rem;
   }
 }
 
-/* Utilidades responsive */
-.hide-mobile { display: none; }
-.show-mobile { display: block; }
-
-@media (min-width: 769px) {
-  .hide-mobile { display: block; }
-  .show-mobile { display: none; }
-}
-
-/* Mejoras de accesibilidad */
-@media (prefers-reduced-motion: reduce) {
-  * {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
-  }
-}
-
-/* Modo oscuro (opcional) */
-@media (prefers-color-scheme: dark) {
-  body {
-    background-color: #1a1a2e;
-    color: #eee;
-  }
-  
-  .card, .loyalty-card {
-    background: #16213e;
-    color: #eee;
-  }
-}
-
-/* Fix para iPhone notch */
-@supports (padding-top: env(safe-area-inset-top)) {
-  header {
-    padding-top: env(safe-area-inset-top);
-  }
-}
+/* Utilidades */
+.text-center { text-align: center; }
+.mt-20 { margin-top: 20px; }
+.mb-20 { margin-bottom: 20px; }
