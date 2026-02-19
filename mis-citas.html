@@ -1,50 +1,123 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mis Citas - Glam Room</title>
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📋</text></svg>">
-    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="css/styles.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mis Citas - Glam Room</title>
+  <link rel="stylesheet" href="css/styles.css">
+  
+  <!-- Firebase -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
 </head>
 <body>
-    <div class="container">
-        <div id="myAppointmentsScreen" class="screen active">
-            <div class="card-header">
-                <a href="index.html" class="btn-logout">← Volver</a>
-                <h2>📅 Mis Citas</h2>
-            </div>
-            
-            <div class="appointments-list" id="appointmentsList">
-                <p>Cargando...</p>
-            </div>
-
-            <div style="text-align: center; margin-top: 30px;">
-                <a href="agendar.html" class="btn-primary">
-                    <i class="fas fa-plus"></i> Agendar nueva cita
-                </a>
-            </div>
-        </div>
-
-        <!-- Login si no está autenticado -->
-        <div id="loginPrompt" class="screen hidden">
-            <div class="login-box" style="text-align: center; padding: 40px;">
-                <i class="fas fa-lock" style="font-size: 3rem; color: var(--primary-pink); margin-bottom: 20px;"></i>
-                <h2>Inicia sesión para ver tus citas</h2>
-                <p>Debes verificar tu número de teléfono primero</p>
-                <a href="index.html" class="btn-primary" style="margin-top: 20px;">Ir al inicio</a>
-            </div>
-        </div>
+  
+  <div class="container">
+    <header class="page-header">
+      <a href="index.html" class="back-link">← Volver</a>
+      <img src="assets/logo.png" alt="Glam Room" class="logo-small">
+    </header>
+    
+    <h2>📋 Mis Citas</h2>
+    
+    <div id="lista-citas" class="citas-list">
+      <p class="loading-text">Cargando tus citas...</p>
     </div>
+    
+    <div class="actions-footer">
+      <a href="agendar.html" class="btn-primary">Agendar Nueva Cita</a>
+    </div>
+  </div>
 
-    <div id="notification" class="notification"></div>
-
-    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore-compat.js"></script>
-    <script src="js/firebase-config.js"></script>
-    <script src="js/utils.js"></script>
-    <script src="js/my-appointments.js"></script>
+  <script src="js/firebase-config.js"></script>
+  <script>
+    // Script inline simple para mis-citas
+    document.addEventListener('DOMContentLoaded', async function() {
+      const userData = JSON.parse(sessionStorage.getItem('glamUser'));
+      const contenedor = document.getElementById('lista-citas');
+      
+      if (!userData) {
+        contenedor.innerHTML = '<p class="error-text">Debes iniciar sesión primero</p>';
+        setTimeout(() => window.location.href = 'index.html', 2000);
+        return;
+      }
+      
+      try {
+        const snapshot = await db.collection('appointments')
+          .where('userId', '==', userData.id)
+          .where('estado', '!=', 'cancelada')
+          .orderBy('estado')
+          .orderBy('fecha')
+          .orderBy('hora')
+          .get();
+        
+        if (snapshot.empty) {
+          contenedor.innerHTML = `
+            <div class="empty-state">
+              <p>No tienes citas agendadas</p>
+              <a href="agendar.html" class="btn-primary">Agendar mi primera cita</a>
+            </div>
+          `;
+          return;
+        }
+        
+        const hoy = new Date().toISOString().split('T')[0];
+        
+        let html = '';
+        snapshot.forEach(doc => {
+          const cita = doc.data();
+          const esPasada = cita.fecha < hoy;
+          const clase = esPasada ? 'cita-pasada' : 'cita-proxima';
+          
+          html += `
+            <div class="cita-card ${clase}">
+              <div class="cita-header">
+                <span class="cita-servicio">${cita.servicio}</span>
+                <span class="cita-estado ${cita.estado}">${cita.estado}</span>
+              </div>
+              <div class="cita-fecha">
+                📅 ${formatearFecha(cita.fecha)} | 🕐 ${cita.hora}
+              </div>
+              <div class="cita-duracion">⏱️ ${cita.duracion} minutos</div>
+              ${!esPasada ? `
+                <button onclick="cancelarCita('${doc.id}')" class="btn-cancelar">
+                  Cancelar Cita
+                </button>
+              ` : ''}
+            </div>
+          `;
+        });
+        
+        contenedor.innerHTML = html;
+        
+      } catch (error) {
+        console.error('Error:', error);
+        contenedor.innerHTML = '<p class="error-text">Error al cargar citas</p>';
+      }
+    });
+    
+    function formatearFecha(fecha) {
+      const opciones = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+      return new Date(fecha).toLocaleDateString('es-MX', opciones);
+    }
+    
+    async function cancelarCita(citaId) {
+      if (!confirm('¿Cancelar esta cita?')) return;
+      
+      try {
+        await db.collection('appointments').doc(citaId).update({
+          estado: 'cancelada',
+          cancelada: firebase.firestore.FieldValue.serverTimestamp()
+        });
+        Toast.show('Cita cancelada', 'success');
+        setTimeout(() => location.reload(), 1000);
+      } catch (error) {
+        Toast.show('Error al cancelar', 'error');
+      }
+    }
+    
+    window.cancelarCita = cancelarCita;
+  </script>
+  
 </body>
 </html>
